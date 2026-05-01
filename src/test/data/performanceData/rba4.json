@@ -1,0 +1,76 @@
+{
+    "consultaAuto": {
+        "url": "%RBA_URL%",
+        "metodo": "POST",
+        "body": {
+            "canal": "02",
+            "usuario": "%RBA_BANRE_USER%",
+            "clave": "%RBA_BANRE_PASS%",
+            "referencia": "259500079407"
+        },
+        "params": {
+            "accept": "text/plain",
+            "Content-Type": "application/json",
+            "ApiKey":"%API_Key_DEV%"
+        },
+        "transacciones": 400,
+        "keysEsperados": {
+            "codigoRespuesta": {
+                "perfType": "string",
+                "perfMinLength": 1
+            },
+            "descripcionRespuesta": {
+                "perfType": "string",
+                "perfMinLength": 1
+            },
+            "referencia": {
+                "perfType": "string",
+                "perfMinLength": 1
+            },
+            "descripcion": {
+                "perfType": "string",
+                "perfMinLength": 1
+            },
+            "nombreCliente": {
+                "perfType": "string",
+                "perfMinLength": 1
+            },
+            "identificacion": {
+                "perfType": "string",
+                "perfMinLength": 1
+            },
+            "tipoIdentificacion": {
+                "perfType": "string",
+                "perfMinLength": 1
+            },
+            "moneda": {
+                "perfType": "string",
+                "perfMinLength": 1
+            },
+            "montoAtraso": {
+                "perfType": "number",
+                "perfMinLength": 1
+            },
+            "montoPendiente": {
+                "perfType": "number",
+                "perfMinLength": 1
+            },
+            "montoMinimo": {
+                "perfType": "number",
+                "perfMinLength": 1
+            },
+            "fechaEmision": {
+                "perfType": "string",
+                "perfMinLength": 1
+            },
+            "fechaVencimiento": {
+                "perfType": "string",
+                "perfMinLength": 1
+            },
+            "pagos": {
+                "perfType": "object",
+                "perfMinLength": 0
+            }
+        }
+    }
+}

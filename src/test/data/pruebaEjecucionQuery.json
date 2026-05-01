@@ -1,0 +1,7 @@
+{
+    "query1": {
+        "query": "SELECT * FROM ruc_general where rownum<=3",
+        "BD": "qadgii",
+        "usuario":"taxchoc"
+    }
+}

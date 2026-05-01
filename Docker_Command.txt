@@ -1,0 +1,9 @@
+docker build -t rba . ---Crear imagen
+docker run -d --name rba(nombre_Imagen) -p 8080:80 -e ASPNETCORE_URLS=http://+:80 rba(nombre_Contenedor) ---Ejecutar contenedor en segundo plano
+docker ps -a ---Contenedores activos
+docker images -a ---Imágenes activas
+docker stop 16435c9c468c ---Detener contenedor por id
+docker stop (nombre_Imagen) ---Detener contenedor por nombre
+docker rm 16435c9c468c ---Eliminar contenedor por id 
+docker rm (nombre_Imagen) ---Eliminar contenedor por nombre
+docker rmi rba ---Eliminar imagen por nombre

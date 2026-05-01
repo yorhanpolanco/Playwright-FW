@@ -1,0 +1,92 @@
+{
+    "casoValidos": {
+        "rnc": "401506254",
+        "labelsEsperados": [
+            "Cédula/RNC",
+            "Nombre/Razón Social",
+            "Nombre Comercial",
+            "Categoría",
+            "Régimen de pagos",
+            "Estado",
+            "Actividad Economica",
+            "Administracion Local",
+            "Facturador Electrónico",
+            "Licencias de Comercialización de VHM"
+        ],
+        "valoresEsperados": [
+            "401-50625-4",
+            "DIRECCION GENERAL DE IMPUESTOS INTERNOS",
+            "DGII",
+            "",
+            "NORMAL",
+            "ACTIVO",
+            "SERV GRALES DE LA ADM PÚBLICA (INCL. EL DESEMPEÑO DE FUNCIONES EJECUTIVAS Y LEGISLATIVAS DE ADM POR PARTE DE LAS ENTIDADES DE LA A",
+            "ADM LOCAL GGC",
+            "SI",
+            "N/A"
+        ],
+        "query": "SELECT * FROM ruc_general where rownum<=1",
+        "query2": "SELECT * FROM ( SELECT * FROM ruc_general WHERE rownum <= 5 ORDER BY RGE_RUC DESC ) WHERE rownum = 1",
+        "BD": "qadgii",
+        "usuario": "taxchoc"
+    },
+    "casoValidos2": {
+        "rnc": "101010632",
+        "labelsEsperados": [
+            "Cédula/RNC",
+            "Nombre/Razón Social",
+            "Nombre Comercial",
+            "Categoría",
+            "Régimen de pagos",
+            "Estado",
+            "Actividad Economica",
+            "Administracion Local",
+            "Facturador Electrónico",
+            "Licencias de Comercialización de VHM"
+        ],
+        "valoresEsperados": [
+            "401-50625-4",
+            "DIRECCION GENERAL DE IMPUESTOS INTERNOS",
+            "DGII",
+            "",
+            "NORMAL",
+            "ACTIVO",
+            "SERV GRALES DE LA ADM PÚBLICA (INCL. EL DESEMPEÑO DE FUNCIONES EJECUTIVAS Y LEGISLATIVAS DE ADM POR PARTE DE LAS ENTIDADES DE LA A",
+            "ADM LOCAL GGC",
+            "SI",
+            "N/A"
+        ]
+    },
+    "casoValidos2.rnc": {
+        "rnc": "22301056804",
+        "labelsEsperados": [
+            "Cédula/RNC",
+            "Nombre/Razón Social",
+            "Nombre Comercial",
+            "Categoría",
+            "Régimen de pagos",
+            "Estado",
+            "Actividad Economica",
+            "Administracion Local",
+            "Facturador Electrónico",
+            "Licencias de Comercialización de VHM"
+        ],
+        "valoresEsperados": [
+            "401-50625-4",
+            "DIRECCION GENERAL DE IMPUESTOS INTERNOS",
+            "DGII",
+            "",
+            "NORMAL",
+            "ACTIVO",
+            "SERV GRALES DE LA ADM PÚBLICA (INCL. EL DESEMPEÑO DE FUNCIONES EJECUTIVAS Y LEGISLATIVAS DE ADM POR PARTE DE LAS ENTIDADES DE LA A",
+            "ADM LOCAL GGC",
+            "SI",
+            "N/A"
+        ]
+    },
+    "casoNegativos": {
+        "rnc": "",
+        "labelsEsperados": "",
+        "valoresEsperados": "El campo RNC/Cédula es requerido."
+    }
+}

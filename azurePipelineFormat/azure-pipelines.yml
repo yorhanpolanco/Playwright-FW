@@ -1,0 +1,157 @@
+trigger:
+  branches:
+    include:
+      - main
+      - master
+
+pr:
+  branches:
+    include:
+      - main
+      - master
+
+parameters:
+  - name: browser
+    displayName: 'Seleccionar browser a ejecutar'
+    type: string
+    default: 'chrome'
+    values:
+      - chrome
+      - firefox
+      - safari
+      - edge
+      - multipleNavegador
+      - api
+
+  - name: folder
+    displayName: 'Seleccionar folder a ejecutar'
+    type: string
+    default: ' '
+    values:
+      - ' '
+      - portal
+      - traking
+      - ' '
+
+  - name: feature
+    displayName: 'Seleccionar feature a ejecutar'
+    type: string
+    default: ' '
+    values:
+      - ' '
+      - consultaRNC
+      - AccederDGII
+      - consultaCaso
+      - ejecucionOracle
+      - ejecucionApi
+
+
+  - name: tags
+    displayName: 'Seleccionar tags a ejecutar'
+    type: string
+    default: '@smoke'
+    values:
+      - ' '
+      - '@smoke'
+      - '@regression'
+      - '@first'
+
+  - name: env
+    displayName: 'Seleccionar ambiente de prueba'
+    type: string
+    default: 'prod'
+    values:
+      - ' '
+      - qa
+      - prod
+      - ' '
+
+  - name: paralelo
+    displayName: 'Insertar cantidad de ejecuciones en paralelo'
+    type: string
+    default: ' '    
+stages:
+- stage: test
+  jobs:
+  - job: test
+    timeoutInMinutes: 60
+    
+    strategy:
+      matrix:
+    #    macOs:
+    #      poolName: 'onpremise'
+    #      vmImage: 'macOs-latest'
+        windows:
+          poolName: 'onpremise'
+          vmImage: 'windows-latest'
+    #  maxParallel: 2  # Descomentar para agregar ejecucion en paralelo de multiples plataformas si existen varios agentes(hosted)
+    
+    variables:
+    - group: 'ConexionBD'
+    - name: BROWSER
+      ${{ if eq( parameters.browser , '') }}:
+        value: chrome
+      ${{ else }}:
+        value: ${{ parameters.browser }}
+    - name: ENVIRONMENT
+      ${{ if eq( parameters.env, '') }}:
+        value: prod
+      ${{ else }}:
+        value: ${{ parameters.env }}
+    - name: TAGS
+      ${{ if eq( parameters.tags, '') }}:
+        value: '@smoke'
+      ${{ else }}:
+        value: ${{ parameters.tags }}
+    - name: HEADLESS
+      value: true
+  
+    pool:
+      name: $(poolName)
+      vmImage: $(vmImage) 
+        
+    steps:
+      - checkout: self
+        displayName: 'Clonar repositorio'       
+
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '>=20.x'
+        displayName: 'Configurar Node.js'
+
+      - script: |
+          npm ci
+        displayName: 'Instalar dependencias de CI'
+
+      - script: |
+          npm run $(BROWSER) folder=${{ parameters.folder }} feature=${{ parameters.feature }} tags=$(TAGS) env=$(ENVIRONMENT) paralelo=${{ parameters.paralelo }}
+        displayName: 'Ejecutar escenarios de prueba'
+        retryCountOnTaskFailure: 2
+        env:
+          DB_CADENA_QADGII: $(CADENA_QADGII)
+          DB_PASSWORD_QADGII_TAXCHOC: $(PASSWORD_QADGII_TAXCHOC) 
+
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: |
+           $(Pipeline.Workspace)/s/src/test-result/reports/
+          artifactName: 'ReporteHTML-$(vmImage)'
+        condition: always()
+        displayName: 'Generar artefacto de Reporte HTML para $(vmImage)'
+
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: |
+           $(Pipeline.Workspace)/s/logs/
+          artifactName: 'Logs-$(vmImage)'
+        condition: always()
+        displayName: 'Generar artefacto de logs para $(vmImage)'
+
+      - task: PublishTestResults@2
+        inputs:
+          testResultsFiles: '$(Pipeline.Workspace)/s/src/test-result/reports/xml/**/*.xml'
+          mergeTestResults: true
+          testRunTitle: 'Cucumber JUnit Results'
+          publishRunAttachments: true
+        condition: and(succeeded(), ne(variables['BROWSER'], 'perf'))
+        displayName: 'Publicar Test Results'

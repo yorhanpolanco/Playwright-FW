@@ -1,0 +1,46 @@
+{
+    "escenario1": {
+        "urlBase": "https://petstore.swagger.io",
+        "ruta": "/v2/store/inventory",
+        "cabecera": "accept:application/json",
+        "autorizacion": "",
+        "datos": ""
+    },
+    "escenario2": {
+        "urlBase": "https://petstore.swagger.io",
+        "ruta": "/v2/pet/9223372036854764825",
+        "cabecera": {
+            "accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        "autorizacion": "",
+        "datos": ""
+    },
+    "escenario3": {
+        "urlBase": "https://petstore.swagger.io",
+        "ruta": "/v2/pet",
+        "cabecera": {
+            "accept": "application/json",
+            "Content-Type": "application/json"
+        },
+        "autorizacion": "",
+        "datos": {
+            "id": 0,
+            "category": {
+                "id": 0,
+                "name": "string"
+            },
+            "name": "yopin2",
+            "photoUrls": [
+                "string"
+            ],
+            "tags": [
+                {
+                    "id": 0,
+                    "name": "string"
+                }
+            ],
+            "status": "available"
+        }
+    }
+}
