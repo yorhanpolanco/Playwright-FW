@@ -1,0 +1,114 @@
+name: Playwright Tests
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      browser:
+        type: choice
+        description: 'Seleccionar browser a ejecutar'
+        required: true
+        default: 'chrome'
+        options:
+          - 'chrome'
+          - 'firefox'
+          - 'safari'
+          - 'edge'
+          - 'multipleNavegador'
+          - 'api'
+          - 'perf'
+      folder:
+        type: choice
+        description: 'Seleccionar folder a ejecutar'
+        required: false
+        default: ''
+        options:
+          - ''
+          - 'portal'
+          - 'traking'
+      feature:
+        type: choice
+        description: 'Seleccionar feature a ejecutar'
+        required: false
+        default: ''
+        options:
+          - ''
+          - 'consultaRNC'
+          - 'AccederDGII'
+          - 'consultaCaso'
+          - ejecucionOracle
+          - 'ejecucionApi'
+      tags:
+        type: choice
+        description: 'Seleccionar tags a ejecutar'
+        required: false
+        default: '@smoke'
+        options:
+          - ''
+          - '@smoke'
+          - '@regression'
+          - '@first'
+          - '@smokeApi'
+      env:
+        type: choice
+        description: 'Seleccionar ambiente de prueba'
+        required: true
+        default: 'prod'
+        options:
+          - ''
+          - 'prod'
+          - 'qa'
+      paralelo:
+        type: string
+        description: 'Insertar cantidad de ejecucion en paralelo'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  Test:
+    timeout-minutes: 60
+    runs-on: windows-latest
+    env:
+      BROWSER: ${{ github.event.inputs.browser || 'chrome' }}
+      FOLDER: ${{ github.event.inputs.folder || '' }}
+      FEATURE: ${{ github.event.inputs.feature || '' }}
+      TAGS: ${{ github.event.inputs.browser != 'api' &&  (github.event.inputs.tags ||'@smokeApi') || '' }}
+      ENVIRONMENT: ${{ github.event.inputs.env || 'prod' }}
+      PARALELO: ${{ github.event.inputs.paralelo || '' }}
+      HEADLESS: true
+    steps:
+    - name: Clonar repositorio
+      uses: actions/checkout@v4
+    - name: Configurar Node.js  
+      uses: actions/setup-node@v4
+      with:
+        node-version: lts/*    
+    - name: Install dependencies
+      run: npm install 
+    - name: Run Playwright tests
+      run: npm run ${{ env.BROWSER }} folder=${{ env.FOLDER }} data_file='rba2' feature=${{ env.FEATURE }} tags=${{ env.TAGS }} env=${{ env.ENVIRONMENT }} paralelo=${{ env.PARALELO }}      
+    - name: Mostrar resultado
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          src/test-result/reports/*.html
+          logs/*.txt
+        retention-days: 30
+    - name: Report test results
+      uses: dorny/test-reporter@v1
+      if: ${{ env.BROWSER !='perf'}}
+      with:
+        name: JUnit Report
+        path: src/test-result/reports/xml/**/*.xml
+        reporter: java-junit

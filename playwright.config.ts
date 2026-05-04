@@ -26,8 +26,8 @@ export default defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html', { outputFolder: `playwright-report/${process.env.Report}` }],
-    ['junit', { outputFile: 'src/test-result/reports/xml/results.xml' }],
-    ['json', { outputFile: 'src/test-result/reports/json/results.json' }],
+    ['junit', { outputFile: `playwright-report/temp/xml/results.xml` }],
+    ['json', { outputFile: `playwright-report/temp/json/results.json` }],
     ['./src/config/CustomReporter.ts']
   ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
@@ -48,7 +48,7 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'on',
     video: 'on',
-    headless: false,
+    headless: process.env.HEADLESS=== 'true',
     ignoreHTTPSErrors: true,
     viewport: { width: 1920, height: 1080 },
   },

@@ -26,12 +26,12 @@ const ApiAuthDetails: ApiAuthDetails = {
  */
 export default function getAuthDetails(auth: string) {
     if (auth === undefined || auth === "") {
-        Utilidades.agregarLineaAlLog("No se especifico un Autorizacion");
+        Utilidades.agregarLineaAlLog(`[W${process.env.TEST_WORKER_INDEX || '?'}] No se especifico un Autorizacion`);
     }
     else if (ApiAuthDetails[auth]) {
         return ApiAuthDetails[auth];
     } else {
-        const log = `Las credenciales de autorización para API=${auth} no fueron encontradas en el archivo ApiAuthConfig`;
+        const log = `[W${process.env.TEST_WORKER_INDEX || '?'}] Las credenciales de autorización para API=${auth} no fueron encontradas en el archivo ApiAuthConfig`;
         throw new Error(log);
     }
 }

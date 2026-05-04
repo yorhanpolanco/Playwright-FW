@@ -1,5 +1,5 @@
 import { test, expect } from '../../../config/fixtures/index';
-import { consultaRNCPOM } from '../../pom/consultaRNC';
+import { consultaRNCPOM } from '../../pom/portal/consultaRNC';
 
 test.describe('Acceder a DGII y consultar BD', () => {
   let consultaRNC: consultaRNCPOM;

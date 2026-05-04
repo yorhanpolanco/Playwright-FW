@@ -1,0 +1,32 @@
+{
+    "workbench.editor.empty.hint": "hidden",
+    "playwright.reuseBrowser": true,
+    "playwright.showTrace": false,
+    "git.autofetch": true,
+    "workbench.iconTheme": "material-icon-theme",
+    "[typescript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "typescript.updateImportsOnFileMove.enabled": "never",
+    "[javascript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    },
+    "azuregit.settings.insertPat": true,
+    "azuregit.settings.reuseTerminal": true,
+    "azuregit.settings.sortByLastCommit": true,
+    "git.enableSmartCommit": true,
+    "material-icon-theme.files.associations": {
+        "*.artifactignore": "diff"
+    },
+    "material-icon-theme.folders.associations": {
+        "pom": "content",
+        "mapeoDeElementos": "mappings",
+        "utilidades": "utils",
+        "portal": "public",
+        "azurePipelineFormat": "Azure-pipelines",
+        "apiToUpdateTestCase": "Postman",
+        "playwright-report": "Resource",
+        "prod-chromium":"Resource",
+        "performanceData":"Benchmark",
+    }
+}

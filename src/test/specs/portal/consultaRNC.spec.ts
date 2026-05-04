@@ -1,5 +1,5 @@
 import { test, expect } from '../../../config/fixtures/index';
-import { consultaRNCPOM } from '../../pom/consultaRNC';
+import { consultaRNCPOM } from '../../pom/portal/consultaRNC';
 
 const DATA_FILE = 'consultaRnc.json';
 

@@ -1,0 +1,27 @@
+{
+  // Comando para imprimir extensiones de VSC code --list-extensions
+  "recommendations": [
+    "ms-vscode.azure-repos",
+    "ms-vscode.remote-repositories",
+    "cucumberopen.cucumber-official",
+    "alexkrechik.cucumberautocomplete",
+    "deepakkamboj0121.vscode-playwright-test-snippets",
+    "donjayamanne.githistory",
+    "github.remotehub",
+    "github.vscode-github-actions",
+    "kakumei.ts-debug",
+    "ms-playwright.playwright",
+    "mskelton.playwright-test-snippets",
+    "neilbarkhina.gitdownloadazurerepos",
+    "nitayneeman.playwright-snippets",
+    "pkief.material-icon-theme",
+    "sakamoto66.vscode-playwright-test-runner",
+    "sumanthtps.playwright-test-code-snippets",
+    "usernamehw.errorlens",
+    "visualstudioexptteam.vscodeintellicode",
+    "visualstudioexptteam.intellicode-api-usage-examples",
+    "wallabyjs.console-ninja",
+    "wallabyjs.quokka-vscode",
+    "wholroyd.jinja"
+  ]
+}

@@ -94,20 +94,20 @@ export const worldDataFixture = {
             cargarDataFeature: async (jsonFile: string, objetoJson: string) => {
                 const filePath = path.resolve(__dirname, '../../test/data/', jsonFile);
                 if (fs.existsSync(filePath)) {
-                    const log = Logs.formantCabecera('Se encontró archivo Json con los datos para las pruebas');
+                    const log = Logs.formantCabecera(`[W${process.env.TEST_WORKER_INDEX || '?'}] Se encontró archivo Json con los datos para las pruebas`);
                     await Utilidades.agregarLineaAlLog(log, true);
                     const fileContent = fs.readFileSync(filePath, 'utf-8');
                     internalDataJson = JSON.parse(fileContent)[objetoJson];
 
                     if (internalDataJson && Object.keys(internalDataJson).length > 0) {
-                        const successLog = Logs.formantCabecera('Se cargó archivo Json con los datos para las pruebas');
+                        const successLog = Logs.formantCabecera(`[W${process.env.TEST_WORKER_INDEX || '?'}] Se cargó archivo Json con los datos para las pruebas`);
                         await Utilidades.agregarLineaAlLog(successLog, true);
                     } else {
-                        const errorLog = Logs.formantCabecera('No se cargó data del Json a pesar de que el archivo existe, verifique el segundo key en el feature y en su archivo de data.');
+                        const errorLog = Logs.formantCabecera(`[W${process.env.TEST_WORKER_INDEX || '?'}] No se cargó data del Json a pesar de que el archivo existe, verifique el segundo key en el feature y en su archivo de data.`);
                         throw new Error(errorLog);
                     }
                 } else {
-                    const warnLog = '==>No se encontró archivo Json con los datos para las pruebas, la prueba se ejecutará con los datos en la tabla de example<==';
+                    const warnLog = `[W${process.env.TEST_WORKER_INDEX || '?'}] ==>No se encontró archivo Json con los datos para las pruebas<==`;
                     await Logs.formantCabecera('_');
                     await Utilidades.agregarLineaAlLog(warnLog.toUpperCase());
                     await Logs.formantCabecera('_');

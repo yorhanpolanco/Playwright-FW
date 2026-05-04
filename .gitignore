@@ -1,0 +1,8 @@
+node_modules/
+/src/test-result/reports/
+/src/test-result/screenshots/
+/logs/*.txt
+/mapeoDeElementos/*.ts
+/playwright-report/
+/test-results/
+src/test/performance/dashboard.html
