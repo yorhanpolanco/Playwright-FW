@@ -8,11 +8,16 @@ export class Utilidades {
     * @param linea - Texto que se mostrará en el log.
     * @param color - Variable booleana que si se envía true activa el color del texto en la consola.
    */
+  static get workerTag(): string {
+    return `[W${process.env.TEST_WORKER_INDEX || '?'}]`;
+  }
+
   static async agregarLineaAlLog(linea: string, color?: boolean) {
+    const lineaConPrefix = `${Utilidades.workerTag} ${linea}`;
     if (typeof color === 'boolean') {
-      await Logs.agregarLineaAlLog(linea, color);
+      await Logs.agregarLineaAlLog(lineaConPrefix, color);
     } else {
-      await Logs.agregarLineaAlLog(linea, '');
+      await Logs.agregarLineaAlLog(lineaConPrefix, '');
     }
   }
 

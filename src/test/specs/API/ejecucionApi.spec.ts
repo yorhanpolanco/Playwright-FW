@@ -1,6 +1,6 @@
 import { test, expect } from '../../../config/fixtures/index';
 
-const DATA_FILE = 'apiExample.json';
+const DATA_FILE = 'apiExample';
 
 const casos = [
   { caso: 'escenario1', metodo: 'get' },

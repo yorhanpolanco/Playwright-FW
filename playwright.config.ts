@@ -38,7 +38,7 @@ export default defineConfig({
         log: async (name, severity, message, args, hints) => {
           let valor: string[] = typeof message === 'string' ? message.split(' ') : [];
           if (valor[2] !== 'started') {
-            const log = `[W${process.env.TEST_WORKER_INDEX || '?'}] ${severity} message: ${message}`;
+            const log = `${severity} message: ${message}`;
             await Utilidades.agregarLineaAlLog(log);
           }
         }

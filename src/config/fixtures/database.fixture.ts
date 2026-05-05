@@ -11,7 +11,7 @@ export const databaseFixture = {
         await use(db);
         const isConnected = await db.status();
         if (isConnected) {
-            await Utilidades.agregarLineaAlLog("Intentando cerrar conexion a la BD");
+            await Utilidades.agregarLineaAlLog(`Intentando cerrar conexion a la BD`);
             await db.close();
         }
     }

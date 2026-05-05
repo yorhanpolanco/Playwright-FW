@@ -1,7 +1,6 @@
 import ApiSetting, { Header } from '../API/apiConfig';
 import getAuthDetails from '../API/apiAuth';
 import { Utilidades } from '../../utilidades/playwright-utilidades';
-import { join } from 'path';
 
 class ApiService {
   private apiSetting: ApiSetting;
@@ -20,13 +19,12 @@ class ApiService {
 
     if (!metodo || !url || !endpoint) {
       const campos = await Utilidades.obtenerVariablesVacias({ metodo, url, endpoint });
-      throw new Error(`No se puede realizar el request porque no fue agregado el valor de ${campos.join(',')}`);
+      throw new Error(`${Utilidades.workerTag} No se puede realizar el request porque no fue agregado el valor de ${campos.join(',')}`);
     }
-
 
     if (dataJson && Object.keys(dataJson).length > 0) {
 
-      await Utilidades.agregarLineaAlLog("Encontró data en la tabla de ejemplos del feature para ejecutar Api");
+      await Utilidades.agregarLineaAlLog(`Encontró data en la tabla de ejemplos del feature para ejecutar Api`);
 
       const jsonData = await dataJson;
       urlApi = await jsonData[url];

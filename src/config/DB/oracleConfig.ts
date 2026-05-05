@@ -18,9 +18,9 @@ class OracleDB {
       Utilidades.agregarLineaAlLog(`Conexion a BD con usuario: ${connectionDetails.user} exitosa!`);
     } catch (err) {
       if (err instanceof Error) {
-        throw new Error(`Error conentandose a la BD con usuario: ${connectionDetails.user} ${err.message}`);
+        throw new Error(`${Utilidades.workerTag} Error conentandose a la BD con usuario: ${connectionDetails.user} ${err.message}`);
       } else {
-        throw new Error(`Error conentandose a laBD con usuario: ${connectionDetails.user}`);
+        throw new Error(`${Utilidades.workerTag} Error conentandose a laBD con usuario: ${connectionDetails.user}`);
       }
     }
   }
@@ -39,20 +39,20 @@ class OracleDB {
       try {
         const result = await this.connection.execute(query, [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
         if (result.rows && result.rows.length === 0) {
-          Utilidades.agregarLineaAlLog("Query ejecutado pero no retorno informacion!", false);
+          Utilidades.agregarLineaAlLog(`Query ejecutado pero no retorno informacion!`, false);
         } else {
-          Utilidades.agregarLineaAlLog("Query ejecutado corrrectamente!");
+          Utilidades.agregarLineaAlLog(`Query ejecutado corrrectamente!`);
         }
         return result.rows;
       } catch (err) {
         if (err instanceof Error) {
-          throw new Error(`Error ejecutando query: ${err.message}`);
+          throw new Error(`${Utilidades.workerTag} Error ejecutando query: ${err.message}`);
         } else {
-          throw new Error('Error desconocido ejecutando query');
+          throw new Error(`${Utilidades.workerTag} Error desconocido ejecutando query`);
         }
       }
-    }else{
-      throw new Error('No hay una conexion a BD activa!')
+    } else {
+      throw new Error(`${Utilidades.workerTag} No hay una conexion a BD activa!`);
     }
   }
 
@@ -60,13 +60,13 @@ class OracleDB {
     if (this.connection) {
       try {
         await this.connection.close();
-        this.connection=undefined;
-        Utilidades.agregarLineaAlLog("Conexion a BD cerrada exitosamente!")
+        this.connection = undefined;
+        Utilidades.agregarLineaAlLog(`Conexion a BD cerrada exitosamente!`);
       } catch (err) {
-        throw new Error(`Error cerrando conexion a BD : ${err} `);
+        throw new Error(`${Utilidades.workerTag} Error cerrando conexion a BD : ${err} `);
       }
     } else {
-      throw new Error("No hay conexion de BD abierta que cerrar.");
+      throw new Error(`${Utilidades.workerTag} No hay conexion de BD abierta que cerrar.`);
     }
   }
 }
