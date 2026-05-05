@@ -15,5 +15,9 @@
   },
   "include": [
     "src/**/*.ts"
+  ],
+  "exclude": [
+    "src/config/performance",
+    "src/test/performance"
   ]
 }

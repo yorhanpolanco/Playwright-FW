@@ -16,7 +16,7 @@ export default class CustomReporter implements Reporter {
     onTestBegin(test: TestCase, result: TestResult) {
         this.stepCounters.set(test.id, 0);
 
-        const featureName = test.parent.parent?.title || test.parent.title;
+        const featureName =  test.parent.title || test.parent.parent?.title;
         const log = `${this.getWorkerPrefix(result)}FEATURE: ${featureName}`;
 
         void Logs.agregarLineaAlLog(Logs.formantCabecera(log.toUpperCase()), true);

@@ -2,26 +2,25 @@ import { test, expect } from '../../../config/fixtures/index';
 
 const DATA_FILE = 'apiExample';
 
-const casos = [
-  { caso: 'escenario1', metodo: 'get' },
-  { caso: 'escenario3', metodo: 'post' },
-];
+const casos = ['escenario1','escenario3'];
 
 test.describe('Ejecucion de Api', () => {
-  for (const { caso, metodo } of casos) {
+  
+  for (const caso of casos) {
     test(`Ejecutar api - "${caso}"`, { tag: ['@smoke', '@regression', '@smokeApi'] }, async ({ apiService, worldData }) => {
-      await test.step(`Given Cargar datos del archivo "${DATA_FILE}" para el caso "${caso}"`, async () => {
+      
+      await test.step(`Cargar datos del archivo "${DATA_FILE}" para el caso "${caso}"`, async () => {
         await worldData.cargarDataFeature(DATA_FILE, caso);
       });
 
-      await test.step(`And Ejecutar metodo "${metodo}" en "urlBase""ruta" con "cabecera", autorizacion "autorizacion" y data "datos"`, async () => {
-        const result = await apiService.ejecutarRequest(worldData.dataJson, metodo, 'urlBase', 'ruta', 'cabecera', 'autorizacion', 'datos');
+      await test.step(`Ejecutar metodo "metodo" en "urlBase""ruta" con "cabecera", autorizacion "autorizacion" y data "datos"`, async () => {
+        const result = await apiService.ejecutarRequest(worldData.dataJson, 'metodo', 'urlBase', 'ruta', 'cabecera', 'autorizacion', 'datos');
         worldData.dataApiResponse = result;
       });
 
-      await test.step('Then Mostrar response del api que se ejecuto', async () => {
+      await test.step('Mostrar response del api que se ejecuto', async () => {
         console.log(worldData.obtenerDataApiResponse());
-        expect(worldData.obtenerDataApiResponse('status')).toEqual(200);
+        expect(worldData.obtenerDataApiResponse('status')).toEqual(worldData.obtenerDataJson('statusEsperado'));
       });
     });
   }

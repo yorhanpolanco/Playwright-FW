@@ -6,7 +6,7 @@ export type DatabaseFixture = {
 };
 
 export const databaseFixture = {
-    databaseService: async ({ }: any, use: (r: DatabaseService) => Promise<void>) => {
+    databaseService: async ({}: {}, use: (r: DatabaseService) => Promise<void>) => {
         const db = new DatabaseService();
         await use(db);
         const isConnected = await db.status();

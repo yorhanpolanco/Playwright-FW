@@ -28,5 +28,6 @@
         "playwright-report": "Resource",
         "prod-chromium":"Resource",
         "performanceData":"Benchmark",
+        "flows":"Layout",
     }
 }

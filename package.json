@@ -11,8 +11,8 @@
     "firefox": "ts-node runner.ts browser=firefox",
     "safari": "ts-node runner.ts browser=webkit",
     "api": "ts-node runner.ts browser=api",
-    "perf": "node ejecucionPerformance.js",
-    "install:k6": "node instalarK6.js",
+    "perf": "ts-node ejecucionPerformance.ts",
+    "install:k6": "ts-node instalarK6.ts",
     "install:playwright": "npx playwright install --with-deps",
     "postinstall": "npm-run-all install:k6 install:playwright"
   },

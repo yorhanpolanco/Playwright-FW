@@ -16,6 +16,7 @@ class ApiService {
     let headersApi;
     let authApi;
     let dataApi;
+    let metodoApi;
 
     if (!metodo || !url || !endpoint) {
       const campos = await Utilidades.obtenerVariablesVacias({ metodo, url, endpoint });
@@ -32,8 +33,9 @@ class ApiService {
       headersApi = await jsonData[headers];
       authApi = auth ? await getAuthDetails(await jsonData[auth]) as Header : undefined;
       dataApi = data ? await jsonData[data] : undefined;
+      metodoApi = await jsonData[metodo] || metodo;
       headerSetting = { ...headersApi, ...authApi };
-      await Utilidades.agregarLineaAlLog(`Se ejecutará el metodo ${metodo} en ${urlApi}${endpointApi}`);
+      await Utilidades.agregarLineaAlLog(`Se ejecutará el metodo ${metodoApi} en ${urlApi}${endpointApi}`);
 
     } else {
 
@@ -42,11 +44,12 @@ class ApiService {
       headersApi = headers ? JSON.parse(headers) as Header : {};
       authApi = auth ? await getAuthDetails(auth) as Header : undefined;
       dataApi = data ? data : undefined;
+      metodoApi = metodo;
       headerSetting = { ...headersApi, ...authApi };
-      await Utilidades.agregarLineaAlLog(`Se ejecutará el metodo ${metodo} en ${urlApi}${endpointApi}`);
+      await Utilidades.agregarLineaAlLog(`Se ejecutará el metodo ${metodoApi} en ${urlApi}${endpointApi}`);
     }
 
-    const response = await this.apiSetting.ejecutarMetodo(metodo, urlApi, endpointApi, headerSetting, dataApi);
+    const response = await this.apiSetting.ejecutarMetodo(metodoApi, urlApi, endpointApi, headerSetting, dataApi);
     return response;
 
   }

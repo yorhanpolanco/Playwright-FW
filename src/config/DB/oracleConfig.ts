@@ -11,6 +11,10 @@ class OracleDB {
   private connection?: oracledb.Connection;
   private connectionDetails?: ConnectionDetails;
 
+  isConnected(): boolean {
+    return this.connection !== undefined;
+  }
+
   async connect(connectionDetails: ConnectionDetails): Promise<void> {
     try {
       this.connection = await oracledb.getConnection(connectionDetails);
@@ -28,9 +32,11 @@ class OracleDB {
   async executeQuery(connectionDetails: ConnectionDetails, query: string): Promise<any> {
     if (!this.connection) {
       await this.connect(connectionDetails);
-    } else if (this.connectionDetails && (this.connectionDetails.user !== connectionDetails.user ||
+    } else if (this.connectionDetails && (
+      this.connectionDetails.user !== connectionDetails.user ||
       this.connectionDetails.password !== connectionDetails.password ||
-      this.connectionDetails.connectionString !== connectionDetails.connectionString)) {
+      this.connectionDetails.connectionString !== connectionDetails.connectionString
+    )) {
       await this.closeConnection();
       await this.connect(connectionDetails);
     }

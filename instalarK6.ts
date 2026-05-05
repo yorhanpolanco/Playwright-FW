@@ -1,5 +1,5 @@
-const { execSync } = require('child_process');
-const os = require('os');
+import { execSync } from 'child_process';
+import os from 'os';
 
 let k6Instalado = false;
 
@@ -7,7 +7,7 @@ try {
     execSync('k6 version', { stdio: 'ignore' });
     console.log('k6 ya está instalado. Omitiendo instalación y continuando con los demás procesos...');
     k6Instalado = true;
-} catch (e) {
+} catch {
     console.log('k6 no está instalado. Procediendo con la instalación...');
 }
 

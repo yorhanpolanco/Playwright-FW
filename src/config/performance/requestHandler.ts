@@ -5,17 +5,18 @@ import { CaseData } from '../performance/loadData';
 
 /**
  * @description - Envía una solicitud HTTP y valida la respuesta.
- * @param {Object} CaseData - Datos de prueba que incluyen el método, URL, cuerpo, parámetros y claves esperadas.
- * @returns - {Response} Respuesta del servidor después de enviar la solicitud.
+ * @param {CaseData} data - Datos de prueba que incluyen el método, URL, cuerpo, parámetros y claves esperadas.
+ * @returns {Response} Respuesta del servidor.
  */
 export function sendRequest(data: CaseData) {
+  const payload = JSON.stringify(data.body);
+  const params  = { headers: { ...data.params }, timeout: '120s' };
+  const res     = http.request(data.metodo, data.url, payload, params);
 
-  const payload = JSON.stringify(data.body);   
-  const params  ={ headers: { ...data.params },timeout: '120s' };
-
-  const res = http.request(data.metodo, data.url, payload, params );
-
-  check(res, { 'Validar que el status code es 200': (r) => r.status === 200 });
+  const expectedStatus = data.expectedStatus ?? 200;
+  check(res, {
+    'Validar status code': (r) => r.status === expectedStatus
+  });
 
   validarEstructura(res, data.keysEsperados);
 

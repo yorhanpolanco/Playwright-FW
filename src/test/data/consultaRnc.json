@@ -30,7 +30,7 @@
         "BD": "qadgii",
         "usuario": "taxchoc"
     },
-    "casoValidos2": {
+    "casoValidos_sinMatch": {
         "rnc": "101010632",
         "labelsEsperados": [
             "Cédula/RNC",
@@ -57,7 +57,7 @@
             "N/A"
         ]
     },
-    "casoValidos2.rnc": {
+    "casoValidos_cedulaLarga": {
         "rnc": "22301056804",
         "labelsEsperados": [
             "Cédula/RNC",

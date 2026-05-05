@@ -10,14 +10,14 @@ type Esquema = Record<string, any>;
  * @param {any} [defaultValue=undefined] - Valor por defecto a retornar si la ruta no existe.
  * @returns {any} - El valor encontrado en la ruta especificada o el valor por defecto.
  */
-function getByPath(obj, path, defaultValue = undefined) {
+function getByPath(obj: any, path: string, defaultValue: any = undefined): any {
   let parts = path
     .replace(/\[([^\[\]]+)\]/g, '.$1')
     .split('.')
     .filter(Boolean);
 
   //console.log(`getByPath -> ruta: "${path}", partes:`, parts); // Debugging line para ver la ruta padre del json
-  return parts.reduce((res, key) => {
+  return parts.reduce((res: any, key: string) => {
 
     //console.log(`  Nivel actual:`, res, `▼ buscando clave: "${key}"`); // Debugging line para ver el nivel actual del json
     if (res != null && key in res) {

@@ -1,14 +1,16 @@
 import fs from 'fs';
 import path from 'path';
+import { TestInfo } from '@playwright/test';
 import { Utilidades } from '../../utilidades/playwright-utilidades';
 import Logs from '../logConfig';
 
 export type WorldData = {
     dataJson: { [key: string]: any };
-    dataquery?: Array<{ [key: string]: any }>;
+    dataquery: Array<{ [key: string]: any }>;
     dataApiResponse: { [key: string]: any };
     obtenerDataJson: (key?: string) => any;
-    obtenerDataQuery: (key?: string | number, fila?: number) => any;
+    obtenerDataQuery: () => Array<{ [key: string]: any }>;
+    obtenerCeldaQuery: (columna: string, fila: number) => any;
     obtenerDataApiResponse: (key?: string) => any;
     cargarDataFeature: (jsonFile: string, objetoJson: string) => Promise<void>;
 };
@@ -18,16 +20,16 @@ export type WorldDataFixture = {
 };
 
 export const worldDataFixture = {
-    worldData: async ({ }: any, use: (r: WorldData) => Promise<void>, testInfo: any) => {
-        let internalDataJson: { [key: string]: any } = {};
-        let internalDataquery: Array<{ [key: string]: any }> = [];
-        let internalDataApiResponse: { [key: string]: any } = {};
+    worldData: async ({}: {}, use: (r: WorldData) => Promise<void>, testInfo: TestInfo) => {
+        let internalDataJson:        { [key: string]: any }         = {};
+        let internalDataquery:       Array<{ [key: string]: any }>  = [];
+        let internalDataApiResponse: { [key: string]: any }         = {};
 
         const worldData: WorldData = {
-            get dataJson() { return internalDataJson; },
-            set dataJson(val) { internalDataJson = val; },
-            get dataquery() { return internalDataquery; },
-            set dataquery(val) { internalDataquery = val; },
+            get dataJson()        { return internalDataJson; },
+            set dataJson(val)     { internalDataJson = val; },
+            get dataquery()       { return internalDataquery; },
+            set dataquery(val)    { internalDataquery = val; },
             get dataApiResponse() { return internalDataApiResponse; },
             set dataApiResponse(val) { internalDataApiResponse = val; },
 
@@ -35,60 +37,42 @@ export const worldDataFixture = {
                 if (key) {
                     if (key in internalDataJson) {
                         return internalDataJson[key];
-                    } else {
-                        Utilidades.agregarLineaAlLog(`La llave '${key.toUpperCase()}' no existe en el archivo de data`, false);
-                        return undefined;
                     }
-                } else {
-                    return JSON.stringify(internalDataJson);
+                    Utilidades.agregarLineaAlLog(`La llave '${key.toUpperCase()}' no existe en el archivo de data`, false);
+                    return undefined;
                 }
+                return JSON.stringify(internalDataJson);
             },
 
-            obtenerDataQuery: (key?: string | number, fila?: number): any => {
-                let actualKey: string | undefined = typeof key === 'string' ? key.toUpperCase() : undefined;
-                let actualFila: number | undefined = fila;
+            obtenerDataQuery: () => internalDataquery,
 
-                if (typeof key === 'number' && fila) {
-                    Utilidades.agregarLineaAlLog(`El primer valor de la funcion obtenerDataQuery debe ser un string y actualmente es un numero(${key})`, false);
+            obtenerCeldaQuery: (columna: string, fila: number): any => {
+                const key = columna.toUpperCase();
+                if (!internalDataquery || internalDataquery.length === 0) {
+                    Utilidades.agregarLineaAlLog(`No hay resultados de query cargados`, false);
                     return undefined;
-                } else if (typeof key === 'number') {
-                    actualFila = key;
-                    actualKey = undefined;
                 }
-
-                if (actualFila) {
-                    if (actualKey) {
-                        if (internalDataquery && internalDataquery.length > 0 && internalDataquery[0][actualKey]) {
-                            return internalDataquery.map(item => item[actualKey as string])[actualFila - 1];
-                        } else {
-                            Utilidades.agregarLineaAlLog(`${actualKey} no existe en el resultado del query`, false);
-                        }
-                    } else {
-                        return internalDataquery ? internalDataquery[actualFila - 1] : internalDataquery;
-                    }
-                } else {
-                    if (actualKey) {
-                        if (internalDataquery && internalDataquery.length > 0 && internalDataquery[0][actualKey]) {
-                            return internalDataquery.map(item => item[actualKey as string]);
-                        } else {
-                            Utilidades.agregarLineaAlLog(`${actualKey} no existe en el resultado del query`, false);
-                        }
-                    } else {
-                        return internalDataquery;
-                    }
+                const row = internalDataquery[fila - 1];
+                if (!row) {
+                    Utilidades.agregarLineaAlLog(`La fila ${fila} no existe en el resultado del query`, false);
+                    return undefined;
                 }
+                if (!(key in row)) {
+                    Utilidades.agregarLineaAlLog(`La columna '${key}' no existe en el resultado del query`, false);
+                    return undefined;
+                }
+                return row[key];
             },
 
             obtenerDataApiResponse: (key?: string) => {
                 if (key) {
-                    if (internalDataApiResponse[key]) {
+                    if (key in internalDataApiResponse) {
                         return internalDataApiResponse[key];
-                    } else {
-                        Utilidades.agregarLineaAlLog(`${key.toUpperCase()} no existe en el resultado del request del API`, false);
                     }
-                } else {
-                    return JSON.stringify(internalDataApiResponse);
+                    Utilidades.agregarLineaAlLog(`${key.toUpperCase()} no existe en el resultado del request del API`, false);
+                    return undefined;
                 }
+                return JSON.stringify(internalDataApiResponse);
             },
 
             cargarDataFeature: async (jsonFile: string, objetoJson: string) => {
@@ -108,15 +92,11 @@ export const worldDataFixture = {
                     }
                 } else {
                     const warnLog = `==>No se encontró archivo Json con los datos para las pruebas<==`;
-                    await Logs.formantCabecera('_');
                     await Utilidades.agregarLineaAlLog(warnLog.toUpperCase());
-                    await Logs.formantCabecera('_');
                 }
             }
         };
 
-        // Se eliminó la cabecera quemada (FEATURE: Unknown) ya que delegamos
-        // esta responsabilidad a CustomReporter.ts para evitar duplicidades
         await use(worldData);
 
         if (Object.keys(worldData.dataJson).length > 0) {

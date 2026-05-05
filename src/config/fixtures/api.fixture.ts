@@ -5,7 +5,7 @@ export type ApiFixture = {
 };
 
 export const apiFixture = {
-    apiService: async ({ }: any, use: (r: ApiService) => Promise<void>) => {
+    apiService: async ({}: {}, use: (r: ApiService) => Promise<void>) => {
         const api = new ApiService();
         await use(api);
     }
