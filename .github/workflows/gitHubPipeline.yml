@@ -110,5 +110,5 @@ jobs:
       if: ${{ env.BROWSER !='perf'}}
       with:
         name: JUnit Report
-        path: reports/playwright-report/temp/xml/*.xml
+        path: reports/temp/xml/*.xml
         reporter: java-junit
