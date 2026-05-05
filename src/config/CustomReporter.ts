@@ -19,8 +19,8 @@ export default class CustomReporter implements Reporter {
         const featureName =  test.parent.title || test.parent.parent?.title;
         const log = `${this.getWorkerPrefix(result)}FEATURE: ${featureName}`;
 
-        void Logs.agregarLineaAlLog(Logs.formantCabecera(log.toUpperCase()), true);
-        void Logs.agregarLineaAlLog(this.getWorkerPrefix(result) + `SCENARIO: ${this.getScenarioName(test, result).toUpperCase()}`, true);
+        void Logs.agregarLineaAlLogHeader(Logs.formantCabecera(log.toUpperCase()), true);
+        void Logs.agregarLineaAlLogHeader(this.getWorkerPrefix(result) + `SCENARIO: ${this.getScenarioName(test, result).toUpperCase()}`, true);
     }
 
     onStepBegin(test: TestCase, result: TestResult, step: TestStep) {
@@ -29,7 +29,7 @@ export default class CustomReporter implements Reporter {
             this.stepCounters.set(test.id, pasoActual);
 
             const log = `${this.getWorkerPrefix(result)}Se esta ejecutando el step ${pasoActual}: ${step.title}`;
-            void Logs.agregarLineaAlLog(log, true);
+            void Logs.agregarLineaAlLogHeader(log, true);
         }
     }
 
@@ -44,10 +44,10 @@ export default class CustomReporter implements Reporter {
     onTestEnd(test: TestCase, result: TestResult) {
         if (result.status === 'failed') {
             const errorMessage = `${this.getWorkerPrefix(result)}Error: ${result.error?.message || 'Error desconocido'}`;
-            void Logs.agregarLineaAlLog(errorMessage, false);
-            void Logs.agregarLineaAlLog(`${this.getWorkerPrefix(result)}Fue finalizado con error el escenario de prueba: ${this.getScenarioName(test, result).toUpperCase()}!`, false);
+            void Logs.agregarLineaAlLogHeader(errorMessage, false);
+            void Logs.agregarLineaAlLogHeader(`${this.getWorkerPrefix(result)}Fue finalizado con error el escenario de prueba: ${this.getScenarioName(test, result).toUpperCase()}!`, false);
         } else {
-            void Logs.agregarLineaAlLog(`${this.getWorkerPrefix(result)}Fue finalizado el escenario de prueba: ${this.getScenarioName(test, result).toUpperCase()}!`, true);
+            void Logs.agregarLineaAlLogHeader(`${this.getWorkerPrefix(result)}Fue finalizado el escenario de prueba: ${this.getScenarioName(test, result).toUpperCase()}!`, true);
         }
 
         this.stepCounters.delete(test.id);

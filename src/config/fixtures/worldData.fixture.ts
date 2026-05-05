@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { TestInfo } from '@playwright/test';
-import { Utilidades } from '../../utilidades/playwright-utilidades';
 import Logs from '../logConfig';
+import { replacePlaceholders } from '../../utilidades/playwright-utilidades';
 
 export type WorldData = {
     dataJson: { [key: string]: any };
@@ -38,7 +38,7 @@ export const worldDataFixture = {
                     if (key in internalDataJson) {
                         return internalDataJson[key];
                     }
-                    Utilidades.agregarLineaAlLog(`La llave '${key.toUpperCase()}' no existe en el archivo de data`, false);
+                    Logs.agregarLineaAlLog(`La llave '${key.toUpperCase()}' no existe en el archivo de data`, false);
                     return undefined;
                 }
                 return JSON.stringify(internalDataJson);
@@ -49,16 +49,16 @@ export const worldDataFixture = {
             obtenerCeldaQuery: (columna: string, fila: number): any => {
                 const key = columna.toUpperCase();
                 if (!internalDataquery || internalDataquery.length === 0) {
-                    Utilidades.agregarLineaAlLog(`No hay resultados de query cargados`, false);
+                    Logs.agregarLineaAlLog(`No hay resultados de query cargados`, false);
                     return undefined;
                 }
                 const row = internalDataquery[fila - 1];
                 if (!row) {
-                    Utilidades.agregarLineaAlLog(`La fila ${fila} no existe en el resultado del query`, false);
+                    Logs.agregarLineaAlLog(`La fila ${fila} no existe en el resultado del query`, false);
                     return undefined;
                 }
                 if (!(key in row)) {
-                    Utilidades.agregarLineaAlLog(`La columna '${key}' no existe en el resultado del query`, false);
+                    Logs.agregarLineaAlLog(`La columna '${key}' no existe en el resultado del query`, false);
                     return undefined;
                 }
                 return row[key];
@@ -69,7 +69,7 @@ export const worldDataFixture = {
                     if (key in internalDataApiResponse) {
                         return internalDataApiResponse[key];
                     }
-                    Utilidades.agregarLineaAlLog(`${key.toUpperCase()} no existe en el resultado del request del API`, false);
+                    Logs.agregarLineaAlLog(`${key.toUpperCase()} no existe en el resultado del request del API`, false);
                     return undefined;
                 }
                 return JSON.stringify(internalDataApiResponse);
@@ -79,20 +79,20 @@ export const worldDataFixture = {
                 const filePath = path.resolve(__dirname, '../../test/data/', `${jsonFile}.json`);
                 if (fs.existsSync(filePath)) {
                     const log = Logs.formantCabecera(`Se encontró archivo Json con los datos para las pruebas`);
-                    await Utilidades.agregarLineaAlLog(log, true);
+                    await Logs.agregarLineaAlLog(log, true);
                     const fileContent = fs.readFileSync(filePath, 'utf-8');
-                    internalDataJson = JSON.parse(fileContent)[objetoJson];
+                    internalDataJson = replacePlaceholders(JSON.parse(fileContent)[objetoJson]);
 
                     if (internalDataJson && Object.keys(internalDataJson).length > 0) {
                         const successLog = Logs.formantCabecera(`Se cargó archivo Json con los datos para las pruebas`);
-                        await Utilidades.agregarLineaAlLog(successLog, true);
+                        await Logs.agregarLineaAlLog(successLog, true);
                     } else {
-                        const errorLog = Logs.formantCabecera(`${Utilidades.workerTag} No se cargó data del Json a pesar de que el archivo existe, verifique el segundo key en el feature y en su archivo de data.`);
+                        const errorLog = Logs.formantCabecera(`${Logs.workerTag} No se cargó data del Json a pesar de que el archivo existe, verifique el segundo key en el feature y en su archivo de data.`);
                         throw new Error(errorLog);
                     }
                 } else {
                     const warnLog = `==>No se encontró archivo Json con los datos para las pruebas<==`;
-                    await Utilidades.agregarLineaAlLog(warnLog.toUpperCase());
+                    await Logs.agregarLineaAlLog(warnLog.toUpperCase());
                 }
             }
         };

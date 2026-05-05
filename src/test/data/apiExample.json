@@ -2,7 +2,7 @@
     "escenario1": {
         "metodo": "get",
         "statusEsperado": 200,
-        "urlBase": "https://petstore.swagger.io",
+        "urlBase": "%API_PET_BASE_URL%",
         "ruta": "/v2/store/inventory",
         "cabecera": "accept:application/json",
         "autorizacion": "",
@@ -11,7 +11,7 @@
     "escenario2": {
         "metodo": "get",
         "statusEsperado": 200,
-        "urlBase": "https://petstore.swagger.io",
+        "urlBase": "%API_PET_BASE_URL%",
         "ruta": "/v2/pet/9223372036854764825",
         "cabecera": {
             "accept": "application/json",
@@ -23,7 +23,7 @@
     "escenario3": {
         "metodo": "post",
         "statusEsperado": 200,
-        "urlBase": "https://petstore.swagger.io",
+        "urlBase": "%API_PET_BASE_URL%",
         "ruta": "/v2/pet",
         "cabecera": {
             "accept": "application/json",

@@ -1,5 +1,5 @@
 import oracledb from 'oracledb';
-import { Utilidades } from '../../utilidades/playwright-utilidades';
+import Logs from '../logConfig';
 
 export interface ConnectionDetails {
   user: string;
@@ -19,12 +19,12 @@ class OracleDB {
     try {
       this.connection = await oracledb.getConnection(connectionDetails);
       this.connectionDetails = connectionDetails;
-      Utilidades.agregarLineaAlLog(`Conexion a BD con usuario: ${connectionDetails.user} exitosa!`);
+      await Logs.agregarLineaAlLog(`Conexion a BD con usuario: ${connectionDetails.user} exitosa!`);
     } catch (err) {
       if (err instanceof Error) {
-        throw new Error(`${Utilidades.workerTag} Error conentandose a la BD con usuario: ${connectionDetails.user} ${err.message}`);
+        throw new Error(`${Logs.workerTag} Error conentandose a la BD con usuario: ${connectionDetails.user} ${err.message}`);
       } else {
-        throw new Error(`${Utilidades.workerTag} Error conentandose a laBD con usuario: ${connectionDetails.user}`);
+        throw new Error(`${Logs.workerTag} Error conentandose a laBD con usuario: ${connectionDetails.user}`);
       }
     }
   }
@@ -45,20 +45,20 @@ class OracleDB {
       try {
         const result = await this.connection.execute(query, [], { outFormat: oracledb.OUT_FORMAT_OBJECT });
         if (result.rows && result.rows.length === 0) {
-          Utilidades.agregarLineaAlLog(`Query ejecutado pero no retorno informacion!`, false);
+          await Logs.agregarLineaAlLog(`Query ejecutado pero no retorno informacion!`, false);
         } else {
-          Utilidades.agregarLineaAlLog(`Query ejecutado corrrectamente!`);
+          await Logs.agregarLineaAlLog(`Query ejecutado corrrectamente!`);
         }
         return result.rows;
       } catch (err) {
         if (err instanceof Error) {
-          throw new Error(`${Utilidades.workerTag} Error ejecutando query: ${err.message}`);
+          throw new Error(`${Logs.workerTag} Error ejecutando query: ${err.message}`);
         } else {
-          throw new Error(`${Utilidades.workerTag} Error desconocido ejecutando query`);
+          throw new Error(`${Logs.workerTag} Error desconocido ejecutando query`);
         }
       }
     } else {
-      throw new Error(`${Utilidades.workerTag} No hay una conexion a BD activa!`);
+      throw new Error(`${Logs.workerTag} No hay una conexion a BD activa!`);
     }
   }
 
@@ -67,12 +67,12 @@ class OracleDB {
       try {
         await this.connection.close();
         this.connection = undefined;
-        Utilidades.agregarLineaAlLog(`Conexion a BD cerrada exitosamente!`);
+        await Logs.agregarLineaAlLog(`Conexion a BD cerrada exitosamente!`);
       } catch (err) {
-        throw new Error(`${Utilidades.workerTag} Error cerrando conexion a BD : ${err} `);
+        throw new Error(`${Logs.workerTag} Error cerrando conexion a BD : ${err} `);
       }
     } else {
-      throw new Error(`${Utilidades.workerTag} No hay conexion de BD abierta que cerrar.`);
+      throw new Error(`${Logs.workerTag} No hay conexion de BD abierta que cerrar.`);
     }
   }
 }

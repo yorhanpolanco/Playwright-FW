@@ -1,6 +1,10 @@
 import fs from 'fs';
 
 class Logs {
+    static get workerTag(): string {
+        return `[W${process.env.TEST_WORKER_INDEX || '?'}]`;
+    }
+
     static #obtenerFechaYHoraActual(): string {
         return new Date().toLocaleString();
     }
@@ -12,8 +16,8 @@ class Logs {
         }
     }
 
-    static async agregarLineaAlLog(linea: string, color?: boolean | string): Promise<void> {
-        const Reset  = '\x1b[0m';
+    static async #escribirEnLog(linea: string, color?: boolean | string): Promise<void> {
+        const Reset   = '\x1b[0m';
         const FgGreen = '\x1b[32m';
         const FgRed   = '\x1b[31m';
         const rutaLogs = process.env.RUTA_LOGS;
@@ -34,6 +38,14 @@ class Logs {
                 console.error('Error al escribir en el archivo:', error);
             }
         }
+    }
+
+    static async agregarLineaAlLogHeader(linea: string, color?: boolean | string): Promise<void> {
+        await Logs.#escribirEnLog(linea, color);
+    }
+
+    static async agregarLineaAlLog(linea: string, color?: boolean): Promise<void> {
+        await Logs.#escribirEnLog(`${Logs.workerTag} ${linea}`, typeof color === 'boolean' ? color : '');
     }
 
     static formantCabecera(cabecera: string): string {
@@ -92,11 +104,11 @@ class Logs {
     }
 
     static async imprimirCabecera(): Promise<void> {
-        await Logs.agregarLineaAlLog(Logs.formantCabecera(''), true);
-        await Logs.agregarLineaAlLog(Logs.formantCabecera(Logs.#logoCabecera()), true);
-        await Logs.agregarLineaAlLog(Logs.formantCabecera(''), true);
+        await Logs.#escribirEnLog(Logs.formantCabecera(''), true);
+        await Logs.#escribirEnLog(Logs.formantCabecera(Logs.#logoCabecera()), true);
+        await Logs.#escribirEnLog(Logs.formantCabecera(''), true);
         for (const param of Logs.#obtenerParametros()) {
-            await Logs.agregarLineaAlLog(Logs.formantCabecera(param), true);
+            await Logs.#escribirEnLog(Logs.formantCabecera(param), true);
         }
     }
 }

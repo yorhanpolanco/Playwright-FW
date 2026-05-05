@@ -1,5 +1,5 @@
 import DatabaseService from '../DB/oracleService';
-import { Utilidades } from '../../utilidades/playwright-utilidades';
+import Logs from '../logConfig';
 
 export type DatabaseFixture = {
     databaseService: DatabaseService;
@@ -11,7 +11,7 @@ export const databaseFixture = {
         await use(db);
         const isConnected = await db.status();
         if (isConnected) {
-            await Utilidades.agregarLineaAlLog(`Intentando cerrar conexion a la BD`);
+            await Logs.agregarLineaAlLog(`Intentando cerrar conexion a la BD`);
             await db.close();
         }
     }

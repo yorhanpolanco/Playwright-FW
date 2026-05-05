@@ -1,6 +1,7 @@
 import ApiSetting, { Header } from '../API/apiConfig';
 import getAuthDetails from '../API/apiAuth';
-import { Utilidades } from '../../utilidades/playwright-utilidades';
+import { obtenerVariablesVacias } from '../../utilidades/playwright-utilidades';
+import Logs from '../logConfig';
 
 class ApiService {
   private apiSetting: ApiSetting;
@@ -19,13 +20,13 @@ class ApiService {
     let metodoApi;
 
     if (!metodo || !url || !endpoint) {
-      const campos = await Utilidades.obtenerVariablesVacias({ metodo, url, endpoint });
-      throw new Error(`${Utilidades.workerTag} No se puede realizar el request porque no fue agregado el valor de ${campos.join(',')}`);
+      const campos = await obtenerVariablesVacias({ metodo, url, endpoint });
+      throw new Error(`${Logs.workerTag} No se puede realizar el request porque no fue agregado el valor de ${campos.join(',')}`);
     }
 
     if (dataJson && Object.keys(dataJson).length > 0) {
 
-      await Utilidades.agregarLineaAlLog(`Encontró data en la tabla de ejemplos del feature para ejecutar Api`);
+      await Logs.agregarLineaAlLog(`Encontró data en la tabla de ejemplos del feature para ejecutar Api`);
 
       const jsonData = await dataJson;
       urlApi = await jsonData[url];
@@ -35,7 +36,7 @@ class ApiService {
       dataApi = data ? await jsonData[data] : undefined;
       metodoApi = await jsonData[metodo] || metodo;
       headerSetting = { ...headersApi, ...authApi };
-      await Utilidades.agregarLineaAlLog(`Se ejecutará el metodo ${metodoApi} en ${urlApi}${endpointApi}`);
+      await Logs.agregarLineaAlLog(`Se ejecutará el metodo ${metodoApi} en ${urlApi}${endpointApi}`);
 
     } else {
 
@@ -46,7 +47,7 @@ class ApiService {
       dataApi = data ? data : undefined;
       metodoApi = metodo;
       headerSetting = { ...headersApi, ...authApi };
-      await Utilidades.agregarLineaAlLog(`Se ejecutará el metodo ${metodoApi} en ${urlApi}${endpointApi}`);
+      await Logs.agregarLineaAlLog(`Se ejecutará el metodo ${metodoApi} en ${urlApi}${endpointApi}`);
     }
 
     const response = await this.apiSetting.ejecutarMetodo(metodoApi, urlApi, endpointApi, headerSetting, dataApi);

@@ -29,5 +29,6 @@
         "prod-chromium":"Resource",
         "performanceData":"Benchmark",
         "flows":"Layout",
+        "K6-report":"Resource",
     }
 }

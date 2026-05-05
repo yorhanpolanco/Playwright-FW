@@ -1,5 +1,7 @@
+/// <reference types="k6" />
+
 import { SharedArray } from 'k6/data';
-import { replacePlaceholders } from './replacePlaceholders.ts';
+import { replacePlaceholders } from './replacePlaceHoldersPerf.ts';
 
 /**
  * @typedef {Object} CaseData - Formato de datos de prueba para las solicitudes HTTP.
