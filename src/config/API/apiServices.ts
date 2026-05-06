@@ -1,5 +1,5 @@
 import ApiSetting, { Header } from '../API/apiConfig';
-import getAuthDetails from '../API/apiAuth';
+import {getAccessToken} from '../API/defaultAzureCredential';
 import { obtenerVariablesVacias } from '../../utilidades/playwright-utilidades';
 import Logs from '../logConfig';
 
@@ -32,7 +32,7 @@ class ApiService {
       urlApi = await jsonData[url];
       endpointApi = await jsonData[endpoint];
       headersApi = await jsonData[headers];
-      authApi = auth ? await getAuthDetails(await jsonData[auth]) as Header : undefined;
+      authApi = auth ? await getAccessToken(await jsonData[auth]) as Header : undefined;
       dataApi = data ? await jsonData[data] : undefined;
       metodoApi = await jsonData[metodo] || metodo;
       headerSetting = { ...headersApi, ...authApi };
@@ -43,7 +43,7 @@ class ApiService {
       urlApi = url;
       endpointApi = endpoint;
       headersApi = headers ? JSON.parse(headers) as Header : {};
-      authApi = auth ? await getAuthDetails(auth) as Header : undefined;
+      authApi = auth ? await getAccessToken(auth) as Header : undefined;
       dataApi = data ? data : undefined;
       metodoApi = metodo;
       headerSetting = { ...headersApi, ...authApi };

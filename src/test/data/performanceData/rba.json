@@ -1,6 +1,7 @@
 {
     "consultaAuto": {
-        "url": "https://petstore.swagger.io/v2/pet",
+        "urlBase": "%API_PET_BASE_URL%",
+        "ruta":"/v2/pet",
         "metodo": "POST",
         "body": {
             "id": 250,

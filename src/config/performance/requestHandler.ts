@@ -11,7 +11,7 @@ import { CaseData } from '../performance/loadData';
 export function sendRequest(data: CaseData) {
   const payload = JSON.stringify(data.body);
   const params  = { headers: { ...data.params }, timeout: '120s' };
-  const res     = http.request(data.metodo, data.url, payload, params);
+  const res     = http.request(data.metodo, data.urlBase + data.ruta, payload, params);
 
   const expectedStatus = data.expectedStatus ?? 200;
   check(res, {

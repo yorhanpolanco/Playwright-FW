@@ -15,7 +15,8 @@ import { replacePlaceholders } from './replacePlaceHoldersPerf.ts';
  */
 export type CaseData = {
   metodo: string;
-  url: string;
+  urlBase: string;
+  ruta: string;
   body?: any;
   params?: any;
   transacciones: number;

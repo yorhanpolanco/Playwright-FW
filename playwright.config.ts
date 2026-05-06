@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
-import { Utilidades } from './src/utilidades/playwright-utilidades';
+import Logs from './src/config/logConfig';
 
 const env = process.env.ENV || 'dev';
 dotenv.config({ path: `.env.${env}` });
@@ -12,7 +12,7 @@ export default defineConfig({
   timeout: 60 * 1000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 2 : 1,
   workers: process.env.CI
     ? 2
     : parseInt(process.env.WORKERS ?? '1'),
@@ -27,14 +27,14 @@ export default defineConfig({
       logger: {
         isEnabled: (name, severity) => severity !== 'verbose',
         log: async (_name, severity, message) => {
-          await Utilidades.agregarLineaAlLog(`${severity}: ${message}`);
+          await Logs.agregarLineaAlLog(`${severity}: ${message}`);
         }
       }
     },
     trace:              'retain-on-failure',
     screenshot:         'on',
     video:              'on',
-    headless:           process.env.HEADLESS === 'true',
+    headless:           process.env.CI? true: false,
     ignoreHTTPSErrors:  true,
     viewport:           { width: 1920, height: 1080 },
   },
