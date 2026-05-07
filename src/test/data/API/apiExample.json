@@ -4,7 +4,10 @@
         "statusEsperado": 200,
         "urlBase": "%API_PET_BASE_URL%",
         "ruta": "/v2/store/inventory",
-        "cabecera": "accept:application/json",
+        "cabecera": {
+            "accept": "application/json",
+            "Content-Type": "application/json"
+        },
         "autorizacion": "",
         "datos": ""
     },

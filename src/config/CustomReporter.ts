@@ -24,7 +24,7 @@ export default class CustomReporter implements Reporter {
     }
 
     onStepBegin(test: TestCase, result: TestResult, step: TestStep) {
-        if (step.category === 'test.step' && (step.title.startsWith('Given ') || step.title.startsWith('When ') || step.title.startsWith('Then ') || step.title.startsWith('And '))) {
+        if (step.category === 'test.step') {
             const pasoActual = (this.stepCounters.get(test.id) || 0) + 1;
             this.stepCounters.set(test.id, pasoActual);
 

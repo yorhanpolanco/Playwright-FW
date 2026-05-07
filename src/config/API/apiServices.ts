@@ -1,5 +1,6 @@
 import ApiSetting, { Header } from '../API/apiConfig';
-import {getAccessToken} from '../API/defaultAzureCredential';
+import { getAccessToken } from '../API/defaultAzureCredential';
+import getAuthDetails from './apiAuth';
 import { obtenerVariablesVacias } from '../../utilidades/playwright-utilidades';
 import Logs from '../logConfig';
 
@@ -10,7 +11,7 @@ class ApiService {
     this.apiSetting = new ApiSetting();
   }
 
-  async ejecutarRequest(dataJson: any, metodo: string, url: string, endpoint: string, headers: string, auth?: string, data?: any): Promise<any> {
+  async ejecutarRequest(metodo: string, url: string, endpoint: string, headers: string, auth?: string, data?: any): Promise<Object> {
     let headerSetting: Header;
     let urlApi;
     let endpointApi;
@@ -24,31 +25,14 @@ class ApiService {
       throw new Error(`${Logs.workerTag} No se puede realizar el request porque no fue agregado el valor de ${campos.join(',')}`);
     }
 
-    if (dataJson && Object.keys(dataJson).length > 0) {
-
-      await Logs.agregarLineaAlLog(`Encontró data en la tabla de ejemplos del feature para ejecutar Api`);
-
-      const jsonData = await dataJson;
-      urlApi = await jsonData[url];
-      endpointApi = await jsonData[endpoint];
-      headersApi = await jsonData[headers];
-      authApi = auth ? await getAccessToken(await jsonData[auth]) as Header : undefined;
-      dataApi = data ? await jsonData[data] : undefined;
-      metodoApi = await jsonData[metodo] || metodo;
-      headerSetting = { ...headersApi, ...authApi };
-      await Logs.agregarLineaAlLog(`Se ejecutará el metodo ${metodoApi} en ${urlApi}${endpointApi}`);
-
-    } else {
-
-      urlApi = url;
-      endpointApi = endpoint;
-      headersApi = headers ? JSON.parse(headers) as Header : {};
-      authApi = auth ? await getAccessToken(auth) as Header : undefined;
-      dataApi = data ? data : undefined;
-      metodoApi = metodo;
-      headerSetting = { ...headersApi, ...authApi };
-      await Logs.agregarLineaAlLog(`Se ejecutará el metodo ${metodoApi} en ${urlApi}${endpointApi}`);
-    }
+    urlApi = url;
+    endpointApi = endpoint;
+    headersApi = headers? (typeof headers === 'string' ? JSON.parse(headers) : headers): {};
+    authApi = auth ? await getAuthDetails(auth) as Header : undefined;
+    dataApi = data ? data : undefined;
+    metodoApi = metodo;
+    headerSetting = { ...headersApi, ...authApi };
+    await Logs.agregarLineaAlLog(`Se ejecutará el metodo ${metodoApi} en ${urlApi}${endpointApi}`);
 
     const response = await this.apiSetting.ejecutarMetodo(metodoApi, urlApi, endpointApi, headerSetting, dataApi);
     return response;

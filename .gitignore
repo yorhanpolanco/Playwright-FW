@@ -2,5 +2,5 @@ node_modules/
 /src/test-result/reports/
 /src/test-result/screenshots/
 /logs/*.txt
-/reports/
+/reports/*
 /test-results/

@@ -1,7 +1,7 @@
 import { test, expect } from '../../../config/fixtures/index';
 import { ConsultaRNCFlow } from '../../flows/portal/consultaRNC.flow';
 
-const DATA_FILE = 'consultaRnc';
+const DATA_FILE = 'portal/consultaRnc';
 
 test.describe('Regression de consulta RNC', () => {
   

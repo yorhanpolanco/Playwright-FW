@@ -15,7 +15,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 1,
   workers: process.env.CI
     ? 2
-    : parseInt(process.env.WORKERS ?? '1'),
+    : parseInt(process.env.WORKERS || '1'),
   reporter: [
     ['html',   { outputFolder: `reports/playwright-report/${process.env.Report}` }],
     ['junit',  { outputFile:   `reports/temp/xml/results.xml`  }],
