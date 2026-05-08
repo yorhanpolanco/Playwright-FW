@@ -38,13 +38,13 @@
     ],
     "properties": {
       "id": {
-        "type": "string"
+        "type": ["integer", "string"]
       },
       "category": {
         "type": "object",
         "required": ["id", "name"],
         "properties": {
-          "id": { "type": "integer" },
+          "id": { "type": ["integer", "string"] },
           "name": { "type": "string" }
         },
         "additionalProperties": false
@@ -62,7 +62,7 @@
           "type": "object",
           "required": ["id", "name"],
           "properties": {
-            "id": { "type": "integer" },
+            "id": { "type": ["integer", "string"] },
             "name": { "type": "string" }
           },
           "additionalProperties": false

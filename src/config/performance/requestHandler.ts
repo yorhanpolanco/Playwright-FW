@@ -1,24 +1,30 @@
 import http from 'k6/http';
 import { check } from 'k6';
 import { validarEstructura } from '../performance/validator.ts';
-import { CaseData } from '../performance/loadData';
+import { ScenarioData } from '../performance/loadData';
 
 /**
- * @description - Envía una solicitud HTTP y valida la respuesta.
- * @param {CaseData} data - Datos de prueba que incluyen el método, URL, cuerpo, parámetros y claves esperadas.
- * @returns {Response} Respuesta del servidor.
+ * Envía una solicitud HTTP usando la estructura de datos compartida con Playwright
+ * y valida el status code y la estructura del response contra el JSON Schema del escenario.
  */
-export function sendRequest(data: CaseData) {
-  const payload = JSON.stringify(data.body);
-  const params  = { headers: { ...data.params }, timeout: '120s' };
-  const res     = http.request(data.metodo, data.urlBase + data.ruta, payload, params);
+export function sendRequest(data: ScenarioData) {
+  const payload = data.payload ? JSON.stringify(data.payload) : null;
+  const headers: Record<string, string> = { ...data.header };
 
-  const expectedStatus = data.expectedStatus ?? 200;
+  if (data.autorizacion) {
+    headers['Authorization'] = data.autorizacion;
+  }
+
+  const params = { headers, timeout: '120s' };
+  const res = http.request(data.metodo.toUpperCase(), data.urlBase + data.endpoint, payload, params);
+
   check(res, {
-    'Validar status code': (r) => r.status === expectedStatus
+    'Validar status code': (r) => r.status === (data.statusEsperado ?? 200)
   });
 
-  validarEstructura(res, data.keysEsperados);
+  if (data._schema) {
+    validarEstructura(res, data._schema);
+  }
 
   return res;
 }

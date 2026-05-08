@@ -52,6 +52,7 @@
             ],
             "status": "available"
         },
-        "schemaRef": "apiExampleSchemas"
+        "schemaRef": "apiExampleSchemas",
+        "transacciones": 400
     }
 }

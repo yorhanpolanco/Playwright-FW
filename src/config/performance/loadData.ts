@@ -1,60 +1,52 @@
 /// <reference types="k6" />
-
-import { SharedArray } from 'k6/data';
 import { replacePlaceholders } from './replacePlaceHoldersPerf.ts';
 
-/**
- * @typedef {Object} CaseData - Formato de datos de prueba para las solicitudes HTTP.
- * @property {string} metodo - El método HTTP a utilizar (GET, POST, etc.).
- * @property {string} url - La URL del endpoint a probar.
- * @property {any} [body] - El cuerpo de la solicitud (opcional).
- * @property {any} [params] - Parámetros adicionales para la solicitud (opcional).
- * @property {number} transacciones - Número de transacciones a realizar.
- * @property {string[]} keysEsperados - Claves esperadas en la respuesta.
- * @property {number} [expectedStatus] - Código de estado HTTP esperado (default: 200).
- */
-export type CaseData = {
+export type ScenarioData = {
   metodo: string;
   urlBase: string;
-  ruta: string;
-  body?: any;
-  params?: any;
+  endpoint: string;
+  header: Record<string, string>;
+  autorizacion: string;
+  payload?: any;
+  statusEsperado: number;
+  schemaRef?: string;
   transacciones: number;
-  keysEsperados: string[];
-  expectedStatus?: number;
+  _schema?: Record<string, any>;
 };
 
 const FgRed = "\x1b[31m";
 const Reset = "\x1b[0m";
 
-const allCases = new SharedArray<CaseData>('caseData', (): CaseData[] => {
-  const file = __ENV.data_file;
-  console.warn(`*****************************La variable tiene el valor ${file}`);
-  if (!file) throw new Error(FgRed + `
+/**
+ * Carga un escenario específico del archivo de datos compartido con Playwright.
+ * Utiliza open() para leer tanto el JSON de data como el JSON de schema (si aplica).
+ * Debe llamarse en el scope de inicialización de k6 (nivel de módulo), no dentro de default function.
+ *
+ * @param dataFile   - Ruta relativa a src/test/data/API/ sin extensión (ej: "API/apiExample")
+ * @param scenarioKey - Clave del escenario en el JSON (ej: "escenario3")
+ */
+export function cargarEscenario(dataFile: string, scenarioKey: string): ScenarioData {
+  const dataContent = open(import.meta.resolve(`../../test/data/API/${dataFile}.json`));
 
-❌ Falta definir la variable de entorno data_file.
-
-🧭 Qué hacer:
-  1. Prepara un archivo JSON con los datos de prueba en la ruta "src/test/data/performanceData".
-  2. Ejecuta este comando desde la raíz del proyecto:
-
-     npm run perf data_file=<nombre_del_archivo>
-
-✔️ Ejemplo:
-     npm run perf data_file=performanceData
-
-     ` + Reset);
-
-  const content = open(`../../test/data/performanceData/${file}.json`);
-  let parsed: any;
+  let parsed: Record<string, any>;
   try {
-    parsed = JSON.parse(content);
+    parsed = JSON.parse(dataContent);
   } catch (e: any) {
-    throw new Error(`❌ El JSON en ${file}.json es invalido: ${e.message}`);
+    throw new Error(FgRed+`❌ JSON inválido en ${dataFile}.json: ${e.message}` +Reset);
   }
 
-  const arr = Array.isArray(parsed) ? parsed : Object.values(parsed);
-  return replacePlaceholders(arr) as CaseData[];
-});
+  const scenario = parsed[scenarioKey];
+  if (!scenario) {
+    throw new Error(FgRed+`❌ Escenario "${scenarioKey}" no encontrado en ${dataFile}.json` +Reset);
+  }
 
-export const testData: CaseData = allCases[0];
+  const data = replacePlaceholders(scenario) as ScenarioData;
+
+  if (data.schemaRef) {
+    const schemaContent = open(import.meta.resolve(`../../test/data/API/schemas/${data.schemaRef}.json`));
+    const schemas = JSON.parse(schemaContent);
+    data._schema = schemas[scenarioKey];
+  }
+
+  return data;
+}

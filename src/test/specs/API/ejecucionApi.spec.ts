@@ -4,7 +4,7 @@ import { obtenerCasosDeData } from '../../../config/fixtures/worldData.fixture';
 
 const DATA_FILE = 'API/apiExample';
 
-const casos = obtenerCasosDeData(DATA_FILE);
+const casos =obtenerCasosDeData(DATA_FILE);
 
 test.describe('Ejecucion de Api', () => {
   

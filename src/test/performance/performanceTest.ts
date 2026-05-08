@@ -1,17 +1,16 @@
 import { sleep } from 'k6';
-import { testData } from '../../config/performance/loadData.ts';
+import { cargarEscenario } from '../../config/performance/loadData.ts';
 import { sendRequest } from '../../config/performance/requestHandler.ts';
+import { crearOpciones } from '../../config/performance/scenarioConfig.ts';
 
+const DATA_FILE = __ENV.data_file || 'API/apiExample';
+const SCENARIO_KEY = __ENV.scenario || 'escenario3';
 
-export { options } from '../../config/performance/scenarioConfig.ts';
+const data = cargarEscenario(DATA_FILE, SCENARIO_KEY);
 
-/**
- * @description - Función principal que se ejecuta en cada iteración del test de rendimiento.
- * @example
- * Esta función envía una solicitud y duerme por un tiempo aleatorio entre 1 y 3 segundos.
- */
+export const options = crearOpciones(data.transacciones ?? 100);
+
 export default function () {
-  const data = testData;
   sendRequest(data);
   sleep(Math.random() * 2 + 1);
 }

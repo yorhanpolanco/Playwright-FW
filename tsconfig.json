@@ -6,11 +6,13 @@
     "strict": true,
     "paths": {
     },
+    "types": ["node"],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
   },
   "include": [
+    "*.ts",
     "src/**/*.ts"
   ],
   "exclude": [
