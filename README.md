@@ -1,25 +1,24 @@
 
-# README
-
-## Framework de Playwright con BDD y TypeScript
+# Framework de Automatización con Playwright, K6 y TypeScript
 
 ----
 
 ### Descripción
 
-Este es un framework para la automatización de casos de prueba que implementa Playwright, BDD, k6 y TypeScript. Se han agregado varias funcionalidades adicionales, tales como:
+Framework para la automatización de pruebas funcionales, de API, de base de datos y de rendimiento, construido con Playwright y TypeScript. Incluye las siguientes funcionalidades:
 
 - Generación de logs.
 - Posibilidad de utilizar la extensión de Playwright para grabar scripts y reutilizarlos en el framework.
-- Soporte nativo de `playwright-bdd` combinando la sintaxis Gherkin de Cucumber con el motor veloz de Playwright.
-- Fixtures centralizadas en `src/config/fixtures.ts` para administrar funciones, contextos e inyección de dependencias.
-- Uso de datos de prueba desde un archivo JSON.
-- Implementación del patrón de diseño POM (Page Object Model).
-- Un archivo para gestionar las variables de entorno (`.env.dev`, `.env.qa`, etc.).
-- Ejecución nativa en paralelo y configuración multiplataforma nativa desde `playwright.config.ts`.
-- Un archivo feature con steps para ejecutar y consultar queries en la BD
-- Un archivo feature con steps para ejecutar los diferentes metodos de la APIs proporcionadas
-- Configuración para ejecutar pruebas de carga baja, media, alta, estres y resistencia solo agregando un archivo de data.
+- Fixtures centralizadas en `src/config/fixtures/` para administrar contextos e inyección de dependencias por tipo de prueba (UI, API, BD).
+- Patrón de diseño **Flow + POM (Page Object Model)** para separar la lógica de negocio de la interacción con la UI.
+- Uso de datos de prueba desde archivos JSON compartidos entre pruebas Playwright y k6.
+- Validación de schemas de respuestas de API con **AJV** (Playwright) y un validador JSON Schema equivalente para k6, usando los mismos archivos de schema.
+- Un archivo de spec con steps para ejecutar y consultar queries en la BD Oracle.
+- Un archivo de spec con steps para ejecutar los diferentes métodos de API.
+- Configuración para ejecutar pruebas de rendimiento (carga baja, media, alta, estrés y resistencia) con k6, reutilizando los mismos archivos de data y schema de las pruebas de API.
+- Un archivo para gestionar las variables de entorno (`.env.dev`, `.env.qa`, `.env.prod`).
+- Ejecución nativa en paralelo y configuración multiplataforma desde `playwright.config.ts`.
+- Integración con pipelines CI/CD en **GitHub Actions** y **Azure DevOps**.
 
 ----
 
@@ -37,7 +36,7 @@ Este es un framework para la automatización de casos de prueba que implementa P
 
 ### Prerequisitos
 
-1. Instalar **[Node.js](https://nodejs.org/en)** (v20.14.0 o superior)
+1. Instalar **[Node.js](https://nodejs.org/en)** (v24.x o superior)
 2. Instalar **[Visual studio Code](https://code.visualstudio.com/download)** (Ultima versión recomendada)
 3. Instalar la extensión de Playwright para Visual Studio Code:  **[Playwright Test for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-playwright.playwright)**
 4. Instalar **[K6](https://grafana.com/docs/k6/latest/set-up/install-k6/)**:
@@ -56,7 +55,7 @@ winget install k6 --source winget
 git clone <Link_del_repositorio>
 ```
 
-2. Instalar las dependencias:
+2. Instalar las dependencias (instala también Playwright browsers y k6 automáticamente vía `postinstall`):
 
 ```bash
 npm install
@@ -67,128 +66,187 @@ npm install
 ### Estructura del Proyecto
 
 ```plaintext
-├── .vscode/                    # Archivo con sugerencia de extensiones y configuración para las mismas
-├── logs/                       # Archivo de logs          
-├── node_modules/               # Dependencias de npm
-├── src/                        # Código fuente de las pruebas
-│   ├── config/                 # Directorio de archivos de configuracion
-│   │    ├── API/               # Directorio con archivos de configuracion y ejecucion de request a APIs
-│   │    ├── BD/                # Directorio con archivos de configuracion de la conexion y ejecucion de script en la BD
-│   │    ├── fixtures.ts        # Archivo principal de Fixtures integradas para inyección de dependencias
-│   │    └── performance        # Directorio con archivos de configuracion para las pruebas de performance 
-│   ├── test/                   # Directorio de los scenarios de pruebas y los steps
-│   │    ├── data/              # Directorio de la data de pruebas
-│   │    ├── features/          # Archivos .feature de Cucumber
-│   │    ├── pom/               # Directorio de los POMs (Page Object Model)  
-│   │    └── step/              # Definiciones de pasos de Cucumber
-│   ├── test-result/            # Directorio de data de los reportes
-│   │    ├── reports/           # Directorio de reportes de cucumber
-│   │    └── screenshots/       # Directorio de capturas de pantalla temporales
-│   └── utilidades              # Configuraciones y utilidades
-├── .env.dev                    # Archivo de variables de ambiente dev
-├── .env.prod                   # Archivo de variables de ambiente produccion
-├── .env.qa                     # Archivo de variables de ambiente qa
-├── .gitignore                  # Archivos y directorios a ignorar por git
-├── azure-pipelines.yml         # Archivo de configuracion de pipeline
-├── ejecucionPerformance.js     # Archivo de script para la ejecución de performance
-├── package-lock.json           # Archivo automatico de dependencias
-├── package.json                # Archivo de configuracion de dependencias y scripts de npm
-├── playwright.config.ts        # Configuración de Playwright (Browsers, Reportes, Variables)
-├── README.md                   # Este archivo
-└── tsconfig.json               # Configuración de TypeScript
+├── .github/
+│   └── workflows/
+│       └── gitHubPipeline.yml      # Pipeline de GitHub Actions
+├── .vscode/                        # Sugerencias de extensiones y configuración del editor
+├── azurePipelineFormat/
+│   └── azure-pipelines.yml         # Pipeline de Azure DevOps
+├── logs/                           # Archivos de logs generados en ejecución
+├── node_modules/                   # Dependencias de npm
+├── reports/                        # Reportes generados (HTML, JUnit, k6 dashboard)
+├── src/
+│   ├── config/                     # Configuraciones y servicios reutilizables
+│   │   ├── API/                    # Cliente HTTP, autenticación y validación de schema
+│   │   │   ├── apiAuth.ts
+│   │   │   ├── apiConfig.ts
+│   │   │   ├── apiSchemaValidator.ts
+│   │   │   └── apiServices.ts
+│   │   ├── DB/                     # Configuración y servicio de conexión Oracle
+│   │   │   ├── DBConnectionConfig.ts
+│   │   │   ├── oracleConfig.ts
+│   │   │   └── oracleService.ts
+│   │   ├── fixtures/               # Fixtures de Playwright con inyección de dependencias
+│   │   │   ├── index.ts            # Punto de entrada; combina todos los fixtures
+│   │   │   ├── api.fixture.ts
+│   │   │   ├── database.fixture.ts
+│   │   │   ├── pom.fixture.ts
+│   │   │   └── worldData.fixture.ts
+│   │   ├── performance/            # Módulos k6 (carga de data, validación, configuración)
+│   │   │   ├── loadData.ts
+│   │   │   ├── replacePlaceHoldersPerf.ts
+│   │   │   ├── requestHandler.ts
+│   │   │   ├── scenarioConfig.ts
+│   │   │   └── validator.ts
+│   │   ├── CustomReporter.ts       # Reporter personalizado para Playwright
+│   │   └── logConfig.ts
+│   ├── test/
+│   │   ├── data/                   # Datos de prueba JSON (compartidos entre Playwright y k6)
+│   │   │   ├── API/
+│   │   │   │   ├── apiExample.json         # Escenarios de API (metodo, url, payload, etc.)
+│   │   │   │   └── schemas/
+│   │   │   │       └── apiExampleSchemas.json  # JSON Schemas para validación de response
+│   │   │   └── portal/
+│   │   │       └── consultaRnc.json
+│   │   ├── flows/                  # Lógica de negocio reutilizable por los specs
+│   │   │   ├── API/
+│   │   │   │   └── ejecucionAPI.flow.ts
+│   │   │   └── portal/
+│   │   │       └── consultaRNC.flow.ts
+│   │   ├── performance/
+│   │   │   └── performanceTest.ts  # Script principal de k6
+│   │   ├── pom/                    # Page Object Models (elementos UI por página)
+│   │   │   └── portal/
+│   │   │       └── consultaRNC.ts
+│   │   └── specs/                  # Specs de prueba de Playwright
+│   │       ├── API/
+│   │       │   └── ejecucionApi.spec.ts
+│   │       ├── DataBase/
+│   │       │   └── ejecucionOracle.spec.ts
+│   │       └── portal/
+│   │           ├── accederDGII.spec.ts
+│   │           └── consultaRNC.spec.ts
+│   └── utilidades/
+│       └── playwright-utilidades.ts
+├── .env.dev                        # Variables de ambiente desarrollo
+├── .env.qa                         # Variables de ambiente QA
+├── .env.prod                       # Variables de ambiente producción
+├── .gitignore
+├── ejecucionPerformance.ts         # Runner de pruebas k6
+├── instalarK6.ts                   # Script de instalación automática de k6
+├── package.json
+├── package-lock.json
+├── playwright.config.ts            # Configuración de Playwright (browsers, reportes, timeouts)
+├── README.md
+├── runner.ts                       # Runner principal de Playwright
+├── tsconfig.json                   # Configuración TypeScript para Playwright y Node.js
+└── tsconfig.k6.json                # Configuración TypeScript para los módulos k6
 ```
 
 ----
 
 ### Uso
 
-1. Crear el archivo .feature con los escenarios de prueba outline en el directorio **`src/test/features/<sistema_automatizado>/`**. [Ver ejemplo](src/test/features/portal/consultaRNC.feature)
+#### 1. Pruebas de UI (Navegador)
 
-2. Crear el archivo .json con los datos de prueba en el directorio **`src/test/data/`**. [Ver ejemplo](src/test/data/consultaRnc.json)
+1. Crear el archivo `.spec.ts` con los casos de prueba en **`src/test/specs/<sistema>/`**. [Ver ejemplo](src/test/specs/portal/consultaRNC.spec.ts)
 
-3. Crear el archivo .ts del pom con todos los elementos web de los escenarios **`src/test/pom/`**. [Ver ejemplo](src/test/pom/consultaRNC.ts)
+2. Crear el archivo `.json` con los datos de prueba en **`src/test/data/<sistema>/`**. [Ver ejemplo](src/test/data/portal/consultaRnc.json)
 
-4. Actualizar cada archivo .env con la data necesaria de cada ambiente de prueba
+3. Crear el archivo del POM con los elementos web en **`src/test/pom/<sistema>/`**. [Ver ejemplo](src/test/pom/portal/consultaRNC.ts)
 
-5. Crear el archivo .steps.ts con los pasos de los escenarios del archivo feature **`src/test/steps/<sistema_automatizado>/`**. [Ver ejemplo](src/test/steps/portal/consultaRNC.steps.ts)
+4. Crear el archivo de flow con la lógica de negocio en **`src/test/flows/<sistema>/`**. [Ver ejemplo](src/test/flows/portal/consultaRNC.flow.ts)
 
-6. Para ejecutar queries se debe revisar si las credenciales existen en **[DBConnectionConfig](src/config/DB/DBConnectionConfig.ts)** y los valores de ellas en los archivos .env. Luego solo se necesita agregar el paso **"Ejecutar "<consulta>" Oracle en "<BD>" usuario "<user>""** en tu archivo de feature y pasarle el query, la BD donde se ejecutará y el usuario que la ejecutará. [Ver ejemplo1](src/test/features/portal/AccederDGII.feature) [Ver ejemplo2](src/test/features/DataBase/ejecucionOracle.feature)
+5. Actualizar cada archivo `.env` con las variables necesarias para cada ambiente.
 
-    6.1 Fue creada la funcion **obtenerDataQuery( key, fila )** dentro del contexto **CustomWorldImpl** con esta función puedes obtener el resultado del query ejecutandolo en los siguientes formatos:
-    * Un campo en especifico ----> obtenerDataQuery(campo,1)
-    * La lista completa de un campo ----> obtenerDataQuery(campo)
-    * Query completo ----> obtenerDataQuery()
-    * Retorna el registro en la posición 5 ----> obtenerDataQuery(5)
-    Ejemplos:
-    [Ejemplo1](src/test/features/DataBase/ejecucionOracle.feature) [Ejemplo2](src/test/features/portal/AccederDGII.feature)
-       
+#### 2. Pruebas de Base de Datos (Oracle)
 
-7. Para ejecutar request a APIs se debe revisar si las credenciales autorizacion existen en **[apiAuth](src/config/API/apiAuth.ts)** y los valores de ellas en los archivos .env. Luego solo se necesita agregar el paso **"Ejecutar metodo "<metodo>" en "<url>""<endpoint>" con "<header>", autorizacion "<auth>" y data "<data>" "**  en tu archivo de feature y pasarle el metodo que deseas utilizar **"GET, POST, PUT, PATCH, DELETE"** , la url base del API, el endpoint, el header, la autorizacion y la data si aplica.[Ver ejemplo](src/test/features/API/ejecucionApi.feature)
+Revisar que las credenciales existan en **[DBConnectionConfig](src/config/DB/DBConnectionConfig.ts)** y que sus valores estén en los archivos `.env`. Luego agregar el caso de prueba al spec correspondiente. [Ver ejemplo](src/test/specs/DataBase/ejecucionOracle.spec.ts)
 
-    7.1 Fue creada la funcion **obtenerDataApiResponse( key )** dentro del contexto inyectado de **worldData** con esta función puedes obtener el response del request realizado a una API ejecutándolo en los siguientes formatos:
-    * Un campo en especifico ----> obtenerDataApiResponse(campo)
-    * Response completo ----> obtenerDataApiResponse()
-    Ejemplo: [Ejemplo1](src/test/features/API/ejecucionApi.feature)
+El contexto **`WorldData`** expone dos funciones para acceder al resultado del query:
 
-8. Para ejecutar pruebas de performance solo se necesita crear el archivo con la data necesaria en el directorio **`src/test/data/performanceData`**. [Ver ejemplo](src/test/data/performanceData/rba.json)
+| Función | Descripción |
+|---|---|
+| `obtenerDataQuery()` | Retorna el array completo de filas del resultado del query |
+| `obtenerCeldaQuery(columna, fila)` | Retorna el valor de una columna específica en una fila específica (índice desde 1) |
+
+#### 3. Pruebas de API
+
+1. Crear o actualizar el archivo `.json` de data en **`src/test/data/API/`** con la estructura de escenario. [Ver ejemplo](src/test/data/API/apiExample.json)
+
+2. Si se requiere validación de schema, agregar el schema JSON en **`src/test/data/API/schemas/`** con una clave por escenario. [Ver ejemplo](src/test/data/API/schemas/apiExampleSchemas.json)
+
+3. Referenciar el archivo desde el spec usando la constante `DATA_FILE`. [Ver ejemplo](src/test/specs/API/ejecucionApi.spec.ts)
+
+La función **`obtenerDataApiResponse(key)`** dentro del contexto **`worldData`** permite acceder al response:
+
+| Uso | Descripción |
+|---|---|
+| `obtenerDataApiResponse(campo)` | Un campo específico del response |
+| `obtenerDataApiResponse()` | Response completo |
+
+#### 4. Pruebas de Performance (k6)
+
+Los archivos de data de API (`src/test/data/API/`) son compartidos entre Playwright y k6. No se necesita crear archivos separados.
+
+1. Verificar que el escenario a probar exista en el archivo JSON de data y que tenga definido `schemaRef` y `transacciones` si aplica. [Ver ejemplo](src/test/data/API/apiExample.json)
+
+2. Si deseas validar el schema del response, asegurarse de que el JSON Schema exista en `src/test/data/API/schemas/` con la misma clave del escenario.
+
+3. Ejecutar la prueba indicando el archivo, el escenario y el ambiente. [Ver sección Ejecución](#ejecución)
 
 ----
 
 ### Ejecución
 
-#### Ejecución Estándar (Playwright BDD)
+#### Pruebas de UI y API (Playwright)
 
-Para ejecutar las pruebas en Playwright BDD (que ahora soporta auto-generación de tests desde steps):
+Las pruebas se pueden ejecutar por navegador, por feature o por tag:
 
-1. **Ejecución en un navegador específico:**
-
-Las pruebas de APIs y navegadores específicos o de todos los navegadores a la vez se pueden ejecutar con los siguientes comandos:
-
-1.1 **Ejecución en Microsoft Edge:**
-
+**Microsoft Edge:**
 ```bash
-npm run edge folder=<folder> feature=<nombre-feature> tags=@<nombre-tag> env=<prod/qa> workers=<numero>
+npm run edge folder=<folder> feature=<nombre-feature> tags=@<nombre-tag> env=<dev/qa/prod> workers=<numero>
 ```
 
-1.2 **Ejecución en Chrome:**
-
+**Chrome:**
 ```bash
-
-npm run chrome folder=<folder> feature=<nombre-feature> tags=@<nombre-tag> env=<prod/qa> workers=<numero>
+npm run chrome folder=<folder> feature=<nombre-feature> tags=@<nombre-tag> env=<dev/qa/prod> workers=<numero>
 ```
 
-1.3 **Ejecución en Safari:**
-
+**Firefox:**
 ```bash
-npm run safari folder=<folder> feature=<nombre-feature> tags=@<nombre-tag> env=<prod/qa> workers=<numero>
+npm run firefox folder=<folder> feature=<nombre-feature> tags=@<nombre-tag> env=<dev/qa/prod> workers=<numero>
 ```
 
-1.4 **Ejecución en todos los navegadores:**
-
+**Safari:**
 ```bash
-npm run test folder=<folder> feature=<nombre-feature> tags=@<nombre-tag> env=<dev/qa/prod> workers=<numero>
+npm run safari folder=<folder> feature=<nombre-feature> tags=@<nombre-tag> env=<dev/qa/prod> workers=<numero>
 ```
 
-1.5 **Ejecución de APIs:**
-  
+**APIs (sin navegador):**
 ```bash
 npm run api folder=<folder> feature=<nombre-feature> tags=@<nombre-tag> env=<dev/qa/prod> workers=<numero>
 ```
 
-> **!NOTA:**
-> Los parámetros como folder, feature, tags y workers no son obligatorios. Sin embargo, si deseas ejecutar algún elemento específico, puedes especificarlo directamente.
+> **NOTA:** Los parámetros `folder`, `feature`, `tags` y `workers` son opcionales. Si se omiten, se ejecutan todos los casos del ambiente indicado.
 
-2. **Ejecución abriendo el UI Interactivo de Playwright:**
-
+**UI Interactivo de Playwright:**
 ```bash
 npm run test:ui
 ```
 
-3. **Ejecución de pruebas de performance (k6):**
+#### Pruebas de Performance (k6)
 
 ```bash
-npm run perf -- env=<dev/qa/prod> data_file=<nombre-archivo>
+npm run perf env=<dev/qa/prod> data_file=<nombre-archivo> scenario=<clave-escenario>
 ```
+
+**Ejemplo:**
+```bash
+npm run perf env=dev data_file=apiExample scenario=escenario3
+```
+
+> **NOTA:** `data_file` hace referencia a un archivo dentro de `src/test/data/API/` (sin extensión). `scenario` es la clave del escenario dentro de ese archivo. Ambos parámetros son opcionales; si se omiten, se usan los valores por defecto definidos en `performanceTest.ts`.
 
 ----
 
@@ -198,21 +256,20 @@ Para subir los cambios al repositorio favor tomar en cuenta:
 
 1. Realizar los cambios y pruebas en una nueva rama.
 2. Asegurar que el código cumple con la estructura establecida.
-3. Realizar pruebas locales para validar que el codigo funciona correctamente
-4. Actualizar el yaml del pipeline si es necesario
+3. Realizar pruebas locales para validar que el código funciona correctamente.
+4. Actualizar el yaml del pipeline si es necesario.
 5. Enviar un pull request detallando los cambios.
 
 ### Recomendación de Extensiones para VSCode
 
 Para una mejor experiencia de desarrollo, se recomienda instalar las siguientes extensiones en Visual Studio Code:
 
-1. **Azure Git Repost**: `ms-vscode.azure-repos`
-2. **Cucumber**: `cucumber.cucumber`
-3. **IntelliCode**: `VisualStudioExptTeam.vscodeintellicode`
-4. **Material Icon Theme**: `material-icon-theme.material-icon-theme`
-5. **Playwright Code Snippets**: `playwright.playwright-code-snippets`
-6. **Playwright Snippets**: `playwright.playwright-snippets`
-7. **Playwright Test for VSCode**: `playwright.playwright-test-for-vscode`
-8. **Playwright Test Runner**: `playwright.playwright-test-runner`
+1. **Azure Git Repos**: `ms-vscode.azure-repos`
+2. **IntelliCode**: `VisualStudioExptTeam.vscodeintellicode`
+3. **Material Icon Theme**: `material-icon-theme.material-icon-theme`
+4. **Playwright Code Snippets**: `playwright.playwright-code-snippets`
+5. **Playwright Snippets**: `playwright.playwright-snippets`
+6. **Playwright Test for VSCode**: `ms-playwright.playwright`
+7. **Playwright Test Runner**: `playwright.playwright-test-runner`
 
 Puedes instalar estas extensiones fácilmente abriendo el proyecto en Visual Studio Code. VSCode te notificará sobre las extensiones recomendadas y te dará la opción de instalarlas.

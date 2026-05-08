@@ -1,5 +1,5 @@
 import ApiSetting, { Header } from '../API/apiConfig';
-import getAuthDetails from './apiAuth';
+import getAuthDetails, {getAccessToken} from './apiAuth';
 import { obtenerVariablesVacias } from '../../utilidades/playwright-utilidades';
 import Logs from '../logConfig';
 
@@ -17,7 +17,9 @@ class ApiService {
     }
 
     const parsedHeaders = headers ? (typeof headers === 'string' ? JSON.parse(headers) : headers) : {};
-    const authHeader = auth ? await getAuthDetails(auth) as Header : {};
+    //const authHeader = auth ? await getAuthDetails(auth) as Header : {};
+    const authHeader = auth ? await getAccessToken(auth) as Header : {};
+
     const headerSetting: Header = { ...parsedHeaders, ...authHeader };
 
     await Logs.agregarLineaAlLog(`Se ejecutará el metodo ${metodo} en ${url}${endpoint}`);
