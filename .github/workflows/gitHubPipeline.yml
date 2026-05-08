@@ -60,9 +60,9 @@ on:
           - ''
           - 'prod'
           - 'qa'
-      paralelo:
+      workers:
         type: string
-        description: 'Insertar cantidad de ejecucion en paralelo'
+        description: 'Insertar cantidad de ejecucion en workers'
         required: false
         default: ''
 
@@ -83,7 +83,7 @@ jobs:
       FEATURE: ${{ github.event.inputs.feature || '' }}
       TAGS: ${{ github.event.inputs.browser != 'api' &&  (github.event.inputs.tags ||'@smokeApi') || '' }}
       ENVIRONMENT: ${{ github.event.inputs.env || 'prod' }}
-      PARALELO: ${{ github.event.inputs.paralelo || '' }}
+      WORKERS: ${{ github.event.inputs.workers || '' }}
       HEADLESS: true
     steps:
     - name: Clonar repositorio
@@ -95,7 +95,7 @@ jobs:
     - name: Install dependencies
       run: npm install 
     - name: Run Playwright tests
-      run: npm run ${{ env.BROWSER }} folder=${{ env.FOLDER }} data_file='rba2' feature=${{ env.FEATURE }} tags=${{ env.TAGS }} env=${{ env.ENVIRONMENT }} paralelo=${{ env.PARALELO }}      
+      run: npm run ${{ env.BROWSER }} folder=${{ env.FOLDER }} data_file='rba2' feature=${{ env.FEATURE }} tags=${{ env.TAGS }} env=${{ env.ENVIRONMENT }} workers=${{ env.WORKERS }}      
     - name: Mostrar resultado
       uses: actions/upload-artifact@v4
       if: always()
@@ -103,6 +103,7 @@ jobs:
         name: test-results
         path: |
           reports/playwright-report/*/*.html
+          reports/K6-report/*.html
           logs/*.txt
         retention-days: 30
     - name: Report test results

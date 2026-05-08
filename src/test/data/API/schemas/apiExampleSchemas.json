@@ -2,23 +2,6 @@
   "escenario1": {
     "type": "object",
     "required": [
-      "1",
-      "sold",
-      "new",
-      "string",
-      "Busy",
-      "pending",
-      "available",
-      "avalible",
-      "Not Available",
-      "bold",
-      "peric",
-      "SOLD",
-      "{{$status}}",
-      "{{status}}",
-      "avaliable",
-      "disponivel",
-      "{{category}}"
     ],
     "properties": {
       "1": { "type": "integer" },
@@ -40,7 +23,7 @@
       "disponivel": { "type": "integer" },
       "{{category}}": { "type": "integer" }
     },
-    "additionalProperties": false
+    "additionalProperties": true
   },
 
   "escenario3": {
