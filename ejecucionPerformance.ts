@@ -2,6 +2,8 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import dayjs from 'dayjs';
 import Logs from './src/config/logConfig';
+import getAuthDetails, { getAccessToken } from './src/config/API/apiAuth';
+import { isValidUrl, replacePlaceholders } from './src/utilidades/playwright-utilidades';
 
 interface Argumentos {
   dataFile?: string;
@@ -22,8 +24,8 @@ function extraerArgumentos(): Argumentos {
 
     switch (key) {
       case 'data_file': resultado.dataFile = value; break;
-      case 'scenario':  resultado.scenario  = value; break;
-      case 'env':       resultado.env       = value; break;
+      case 'scenario':  resultado.scenario = value; break;
+      case 'env':       resultado.env      = value; break;
     }
   }
 
@@ -53,6 +55,32 @@ async function ejecutar(): Promise<void> {
   if (args.dataFile) k6EnvVars.push(`-e data_file=${args.dataFile}`);
   if (args.scenario) k6EnvVars.push(`-e scenario=${args.scenario}`);
 
+  if (args.dataFile && args.scenario) {
+    const dataPath = `src/test/data/API/${args.dataFile}.json`;
+
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
+    } catch {
+      throw new Error(`No se pudo leer o parsear el archivo de datos: ${dataPath}`);
+    }
+
+    const scenarioData = parsed[args.scenario] as Record<string, unknown> | undefined;
+    const autorizacion = replacePlaceholders((scenarioData?.autorizacion as string) ?? '').trim() || undefined;
+
+    if (autorizacion) {
+      const tokenObj = isValidUrl(autorizacion)
+        ? await getAccessToken(autorizacion)
+        : getAuthDetails(autorizacion);
+
+      const token = (tokenObj as Record<string, string | undefined>)?.Authorization;
+      if (token) {
+        process.env.AZURE_TOKEN = token;
+        await Logs.agregarLineaAlLogHeader(`Token de Azure inyectado para scope: ${autorizacion}`);
+      }
+    }
+  }
+
   const reportLabel = args.dataFile?.replace(/\//g, '_') ?? 'test';
   const reportFile  = `reports/K6-report/performance_dashboard_${reportLabel}_${fecha}.html`;
 
@@ -69,10 +97,17 @@ async function ejecutar(): Promise<void> {
 
   try {
     execSync(command, { stdio: 'inherit', shell, env: process.env });
-    console.log('Ejecución de k6 completada exitosamente.');
-  } catch (error: any) {
-    process.exit(error.status || 1);
+    await Logs.agregarLineaAlLogHeader('Ejecución de k6 completada exitosamente.');
+  } catch (error: unknown) {
+    const status = (error instanceof Error && 'status' in error)
+      ? (error as NodeJS.ErrnoException & { status?: number }).status
+      : undefined;
+    process.exit(status ?? 1);
   }
 }
 
-ejecutar();
+ejecutar().catch((error: unknown) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`Error fatal durante la ejecución: ${message}`);
+  process.exit(1);
+});

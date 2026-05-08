@@ -3,8 +3,8 @@ import { cargarEscenario } from '../../config/performance/loadData.ts';
 import { sendRequest } from '../../config/performance/requestHandler.ts';
 import { crearOpciones } from '../../config/performance/scenarioConfig.ts';
 
-const DATA_FILE = __ENV.data_file || 'apiExample';
-const SCENARIO_KEY = __ENV.scenario || 'escenario3';
+const DATA_FILE = __ENV.data_file;
+const SCENARIO_KEY = __ENV.scenario;
 
 const data = cargarEscenario(DATA_FILE, SCENARIO_KEY);
 

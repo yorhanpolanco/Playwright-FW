@@ -11,8 +11,9 @@ export function sendRequest(data: ScenarioData) {
   const payload = data.payload ? JSON.stringify(data.payload) : null;
   const headers: Record<string, string> = { ...data.header };
 
-  if (data.autorizacion) {
-    headers['Authorization'] = data.autorizacion;
+  const resolvedAuth = __ENV.AZURE_TOKEN;
+  if (resolvedAuth) {
+    headers['Authorization'] = resolvedAuth;
   }
 
   const params = { headers, timeout: '120s' };

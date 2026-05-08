@@ -9,6 +9,15 @@ export async function obtenerVariablesVacias(variables: { [key: string]: any }):
         .map(([nombre]) => nombre);
 }
 
+export function isValidUrl(value: string): boolean {
+  try {
+    new URL(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Reemplaza marcadores de posición con formato %NOMBRE_VARIABLE% en un objeto JSON
  * usando los valores de las variables de ambiente (process.env).
