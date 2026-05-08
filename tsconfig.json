@@ -4,14 +4,11 @@
     "module": "CommonJS",
     "allowJs": true,
     "strict": true,
-    "baseUrl": "./src",
     "paths": {
-      "@/*":["*"]
     },
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "outDir": "./dist"
   },
   "include": [
     "src/**/*.ts"

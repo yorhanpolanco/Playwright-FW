@@ -1,5 +1,4 @@
 import ApiSetting, { Header } from '../API/apiConfig';
-import { getAccessToken } from '../API/defaultAzureCredential';
 import getAuthDetails from './apiAuth';
 import { obtenerVariablesVacias } from '../../utilidades/playwright-utilidades';
 import Logs from '../logConfig';
@@ -11,32 +10,20 @@ class ApiService {
     this.apiSetting = new ApiSetting();
   }
 
-  async ejecutarRequest(metodo: string, url: string, endpoint: string, headers: string, auth?: string, data?: any): Promise<Object> {
-    let headerSetting: Header;
-    let urlApi;
-    let endpointApi;
-    let headersApi;
-    let authApi;
-    let dataApi;
-    let metodoApi;
-
+  async ejecutarRequest(metodo: string, url: string, endpoint: string, headers: string, auth?: string, payload?: any): Promise<Object> {
     if (!metodo || !url || !endpoint) {
       const campos = await obtenerVariablesVacias({ metodo, url, endpoint });
       throw new Error(`${Logs.workerTag} No se puede realizar el request porque no fue agregado el valor de ${campos.join(',')}`);
     }
 
-    urlApi = url;
-    endpointApi = endpoint;
-    headersApi = headers? (typeof headers === 'string' ? JSON.parse(headers) : headers): {};
-    authApi = auth ? await getAuthDetails(auth) as Header : undefined;
-    dataApi = data ? data : undefined;
-    metodoApi = metodo;
-    headerSetting = { ...headersApi, ...authApi };
-    await Logs.agregarLineaAlLog(`Se ejecutará el metodo ${metodoApi} en ${urlApi}${endpointApi}`);
+    const parsedHeaders = headers ? (typeof headers === 'string' ? JSON.parse(headers) : headers) : {};
+    const authHeader = auth ? await getAuthDetails(auth) as Header : {};
+    const headerSetting: Header = { ...parsedHeaders, ...authHeader };
 
-    const response = await this.apiSetting.ejecutarMetodo(metodoApi, urlApi, endpointApi, headerSetting, dataApi);
+    await Logs.agregarLineaAlLog(`Se ejecutará el metodo ${metodo} en ${url}${endpoint}`);
+
+    const response = await this.apiSetting.ejecutarMetodo(metodo, url, endpoint, headerSetting, payload);
     return response;
-
   }
 
 

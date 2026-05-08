@@ -3,37 +3,38 @@
         "metodo": "get",
         "statusEsperado": 200,
         "urlBase": "%API_PET_BASE_URL%",
-        "ruta": "/v2/store/inventory",
-        "cabecera": {
+        "endpoint": "/v2/store/inventory",
+        "header": {
             "accept": "application/json",
             "Content-Type": "application/json"
         },
         "autorizacion": "",
-        "datos": ""
+        "payload": "",
+        "schemaRef": "apiExampleSchemas"
     },
     "escenario2": {
         "metodo": "get",
-        "statusEsperado": 200,
+        "statusEsperado": 404,
         "urlBase": "%API_PET_BASE_URL%",
-        "ruta": "/v2/pet/9223372036854764825",
-        "cabecera": {
+        "endpoint": "/v2/pet/9223372036854764825",
+        "header": {
             "accept": "application/json",
             "Content-Type": "application/json"
         },
         "autorizacion": "",
-        "datos": ""
+        "payload": ""
     },
     "escenario3": {
         "metodo": "post",
         "statusEsperado": 200,
         "urlBase": "%API_PET_BASE_URL%",
-        "ruta": "/v2/pet",
-        "cabecera": {
+        "endpoint": "/v2/pet",
+        "header": {
             "accept": "application/json",
             "Content-Type": "application/json"
         },
         "autorizacion": "",
-        "datos": {
+        "payload": {
             "id": 0,
             "category": {
                 "id": 0,
@@ -50,6 +51,7 @@
                 }
             ],
             "status": "available"
-        }
+        },
+        "schemaRef": "apiExampleSchemas"
     }
 }

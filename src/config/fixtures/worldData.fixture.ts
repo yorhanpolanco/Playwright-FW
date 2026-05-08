@@ -4,6 +4,16 @@ import { TestInfo } from '@playwright/test';
 import Logs from '../logConfig';
 import { replacePlaceholders } from '../../utilidades/playwright-utilidades';
 
+export function obtenerCasosDeData(jsonFile: string): string[] {
+    const filePath = path.resolve(__dirname, '../../test/data/', `${jsonFile}.json`);
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`Archivo de data no encontrado: ${filePath}`);
+    }
+    return Object.keys(
+        JSON.parse(fs.readFileSync(filePath, 'utf-8'))
+    );
+}
+
 export type WorldData = {
     dataJson: { [key: string]: any };
     dataquery: Array<{ [key: string]: any }>;

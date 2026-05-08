@@ -1,0 +1,95 @@
+{
+  "escenario1": {
+    "type": "object",
+    "required": [
+      "1",
+      "sold",
+      "new",
+      "string",
+      "Busy",
+      "pending",
+      "available",
+      "avalible",
+      "Not Available",
+      "bold",
+      "peric",
+      "SOLD",
+      "{{$status}}",
+      "{{status}}",
+      "avaliable",
+      "disponivel",
+      "{{category}}"
+    ],
+    "properties": {
+      "1": { "type": "integer" },
+      "sold": { "type": "integer" },
+      "new": { "type": "integer" },
+      "string": { "type": "integer" },
+      "Busy": { "type": "integer" },
+      "pending": { "type": "integer" },
+      "available": { "type": "integer" },
+      "avalible": { "type": "integer" },
+      "Not Available": { "type": "integer" },
+      "bold": { "type": "integer" },
+      "peric": { "type": "integer" },
+      "SOLD": { "type": "integer" },
+      "Avalable": { "type": "integer" },
+      "{{$status}}": { "type": "integer" },
+      "{{status}}": { "type": "integer" },
+      "avaliable": { "type": "integer" },
+      "disponivel": { "type": "integer" },
+      "{{category}}": { "type": "integer" }
+    },
+    "additionalProperties": false
+  },
+
+  "escenario3": {
+    "type": "object",
+    "required": [
+      "id",
+      "category",
+      "name",
+      "photoUrls",
+      "tags",
+      "status"
+    ],
+    "properties": {
+      "id": {
+        "type": "string"
+      },
+      "category": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "integer" },
+          "name": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "name": {
+        "type": "string"
+      },
+      "photoUrls": {
+        "type": "array",
+        "items": { "type": "string" }
+      },
+      "tags": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["id", "name"],
+          "properties": {
+            "id": { "type": "integer" },
+            "name": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "status": {
+        "type": "string",
+        "enum": ["available", "pending", "sold"]
+      }
+    },
+    "additionalProperties": false
+  }
+}
