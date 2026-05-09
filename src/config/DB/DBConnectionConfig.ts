@@ -11,22 +11,22 @@ import {ConnectionDetails} from '../DB/oracleConfig';
    * Definir el objeto DBCredentials
    */
   const DBCredentials: DBCredentials = {
-    qadgii: {
-      taxchoc: {
-        user: 'taxchoc',
-        password: process.env.DB_PASSWORD_QADGII_TAXCHOC,
-        connectionString: process.env.DB_CADENA_QADGII
+    QASB: {
+      USER: {
+        user: 'USER',
+        password: process.env.DB_PASSWORD_QASB_USER,
+        connectionString: process.env.DB_CADENA_QASB
       },
       TRK: {
-        user: 'taxchoc',
-        password: process.env.DB_PASSWORD_QADGII_TAXCHOC,
-        connectionString: process.env.DB_CADENA_QADGII
+        user: 'USER',
+        password: process.env.DB_PASSWORD_QASB_USER,
+        connectionString: process.env.DB_CADENA_QASB
       }
     },
     qadb01: {
-      taxchoc: {
-        user: 'taxchoc',
-        password: process.env.DB_PASSWORD_QADB01_TAXCHOC,
+      USER: {
+        user: 'USER',
+        password: process.env.DB_PASSWORD_QADB01_USER,
         connectionString: process.env.DB_CADENA_QADB01
       }
     }

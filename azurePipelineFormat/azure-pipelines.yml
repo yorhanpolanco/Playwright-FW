@@ -128,8 +128,8 @@ stages:
         displayName: 'Ejecutar escenarios de prueba'
         retryCountOnTaskFailure: 2
         env:
-          DB_CADENA_QADGII: $(CADENA_QADGII)
-          DB_PASSWORD_QADGII_TAXCHOC: $(PASSWORD_QADGII_TAXCHOC) 
+          DB_CADENA_QASB: $(CADENA_QASB)
+          DB_PASSWORD_QASB_USER: $(PASSWORD_QASB_USER) 
 
       - task: PublishPipelineArtifact@1
         inputs:

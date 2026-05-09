@@ -27,8 +27,8 @@
         ],
         "query": "SELECT * FROM ruc_general where rownum<=1",
         "query2": "SELECT * FROM ( SELECT * FROM ruc_general WHERE rownum <= 5 ORDER BY RGE_RUC DESC ) WHERE rownum = 1",
-        "BD": "qadgii",
-        "usuario": "taxchoc"
+        "BD": "QASB",
+        "usuario": "USER"
     },
     "casoValidos_sinMatch": {
         "rnc": "101010632",

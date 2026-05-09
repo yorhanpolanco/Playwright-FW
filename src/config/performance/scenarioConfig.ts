@@ -35,10 +35,10 @@ export function crearOpciones(transacciones: number): Options {
 
   return {
     thresholds: {
-      'http_req_duration': ['p(90)<500', 'p(99)<1200'],
-      'http_req_failed':   ['rate<0.01'],
-      'checks':            ['rate>0.99'],
-      'checks{name:"Validar status code"}': ['rate>0.99']
+      'http_req_duration': ['p(90)<500', 'p(95)<800', 'p(99)<1200'],
+      'http_req_failed':   ['rate<0.005'],
+      'checks':            ['rate>=0.995'],
+      'checks{name:"Validar_status_code_200"}': ['rate==1.0']
     },
     //scenarios: allProfiles,
     scenarios: { low: allProfiles.low },

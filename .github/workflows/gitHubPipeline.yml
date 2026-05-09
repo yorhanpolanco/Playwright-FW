@@ -1,16 +1,16 @@
 name: Playwright Tests
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, develop ,staging ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, develop ,staging ]
   workflow_dispatch:
     inputs:
       browser:
         type: choice
         description: 'Seleccionar browser a ejecutar'
-        required: true
-        default: 'chrome'
+        required: false
+        default: ''
         options:
           - 'chrome'
           - 'firefox'
@@ -27,7 +27,6 @@ on:
         options:
           - ''
           - 'portal'
-          - 'traking'
       feature:
         type: choice
         description: 'Seleccionar feature a ejecutar'
@@ -37,14 +36,13 @@ on:
           - ''
           - 'consultaRNC'
           - 'AccederDGII'
-          - 'consultaCaso'
-          - ejecucionOracle
+          - 'ejecucionOracle'
           - 'ejecucionApi'
       tags:
         type: choice
         description: 'Seleccionar tags a ejecutar'
         required: false
-        default: '@smoke'
+        default: ''
         options:
           - ''
           - '@smoke'
@@ -55,22 +53,34 @@ on:
         type: choice
         description: 'Seleccionar ambiente de prueba'
         required: true
-        default: 'prod'
+        default: 'dev'
         options:
           - ''
-          - 'prod'
+          - 'dev'
           - 'qa'
+          - 'prod'
       workers:
         type: string
         description: 'Insertar cantidad de ejecucion en workers'
         required: false
         default: ''
-
+      data_file:
+        type: choice
+        description: 'Seleccionar archivo de datos a ejecutar para pruebas de Performance'
+        required: false
+        default: ''
+        options:
+          - ''
+          - 'apiExample'
+      scenario:
+        type: string
+        description: 'Insertar el nombre del escenario a ejecutar para pruebas de Performance'
+        required: false
+        default: ''
 permissions:
   contents: read
   actions: read
   checks: write
-  issues: write
   pull-requests: write
 
 jobs:
@@ -78,24 +88,27 @@ jobs:
     timeout-minutes: 60
     runs-on: windows-latest
     env:
-      BROWSER: ${{ github.event.inputs.browser || 'chrome' }}
+      BROWSER: ${{ github.event.inputs.browser || 'api' }}
       FOLDER: ${{ github.event.inputs.folder || '' }}
       FEATURE: ${{ github.event.inputs.feature || '' }}
-      TAGS: ${{ github.event.inputs.browser != 'api' &&  (github.event.inputs.tags ||'@smokeApi') || '' }}
-      ENVIRONMENT: ${{ github.event.inputs.env || 'prod' }}
+      TAGS: ${{ github.event.inputs.tags || '@smokeApi' }}
+      ENVIRONMENT: ${{ github.event.inputs.env || 'dev' }}
       WORKERS: ${{ github.event.inputs.workers || '' }}
+      DATA_FILE: ${{ github.event.inputs.data_file || '' }}
+      SCENARIO: ${{ github.event.inputs.scenario || '' }}
       HEADLESS: true
     steps:
     - name: Clonar repositorio
       uses: actions/checkout@v4
-    - name: Configurar Node.js  
+    - name: Configurar Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: lts/*    
+        node-version: '22.x'
+        cache: 'npm'
     - name: Install dependencies
-      run: npm install 
+      run: npm ci
     - name: Run Playwright tests
-      run: npm run ${{ env.BROWSER }} folder=${{ env.FOLDER }} data_file='rba2' feature=${{ env.FEATURE }} tags=${{ env.TAGS }} env=${{ env.ENVIRONMENT }} workers=${{ env.WORKERS }}      
+      run: npm run ${{ env.BROWSER }} folder=${{ env.FOLDER }} data_file=${{ env.DATA_FILE }} feature=${{ env.FEATURE }} tags=${{ env.TAGS }} env=${{ env.ENVIRONMENT }} workers=${{ env.WORKERS }} scenario=${{ env.SCENARIO }}      
     - name: Mostrar resultado
       uses: actions/upload-artifact@v4
       if: always()
@@ -107,8 +120,8 @@ jobs:
           logs/*.txt
         retention-days: 30
     - name: Report test results
-      uses: dorny/test-reporter@v1
-      if: ${{ env.BROWSER !='perf'}}
+      uses: dorny/test-reporter@v1.9.1
+      if: ${{ env.BROWSER != 'perf' }}
       with:
         name: JUnit Report
         path: reports/temp/xml/*.xml
