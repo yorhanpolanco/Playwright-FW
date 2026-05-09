@@ -110,7 +110,7 @@ jobs:
     - name: Run Playwright tests
       run: npm run ${{ env.BROWSER }} folder=${{ env.FOLDER }} data_file=${{ env.DATA_FILE }} feature=${{ env.FEATURE }} tags=${{ env.TAGS }} env=${{ env.ENVIRONMENT }} workers=${{ env.WORKERS }} scenario=${{ env.SCENARIO }}      
     - name: Mostrar resultado
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       if: always()
       with:
         name: test-results
