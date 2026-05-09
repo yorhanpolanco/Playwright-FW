@@ -99,9 +99,9 @@ jobs:
       HEADLESS: true
     steps:
     - name: Clonar repositorio
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Configurar Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version: '22.x'
         cache: 'npm'
@@ -110,7 +110,7 @@ jobs:
     - name: Run Playwright tests
       run: npm run ${{ env.BROWSER }} folder=${{ env.FOLDER }} data_file=${{ env.DATA_FILE }} feature=${{ env.FEATURE }} tags=${{ env.TAGS }} env=${{ env.ENVIRONMENT }} workers=${{ env.WORKERS }} scenario=${{ env.SCENARIO }}      
     - name: Mostrar resultado
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: test-results
@@ -120,7 +120,7 @@ jobs:
           logs/*.txt
         retention-days: 30
     - name: Report test results
-      uses: dorny/test-reporter@v1.9.1
+      uses: dorny/test-reporter@v3
       if: ${{ env.BROWSER != 'perf' }}
       with:
         name: JUnit Report
