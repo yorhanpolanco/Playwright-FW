@@ -9,7 +9,7 @@ const casos =obtenerCasosDeData(DATA_FILE);
 test.describe('Ejecucion de Api', () => {
   
   for (const caso of casos) {
-    test(`Ejecutar api - "${caso}"`, { tag: ['@smoke', '@regression', '@smokeApi'] }, async ({ apiService, worldData }) => {
+    test(`Ejecutar api - "${caso}"`, { tag: ['@smoke', '@regression', '@smokeApi','@TC012'] }, async ({ apiService, worldData }) => {
       const flow = new EjecucionAPIFlow(apiService, worldData);
 
 

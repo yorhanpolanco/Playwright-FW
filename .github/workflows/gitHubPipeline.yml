@@ -115,7 +115,7 @@ jobs:
       with:
         name: test-results
         path: |
-          reports/playwright-report/*/*.html
+          reports/playwright-report/
           reports/K6-report/*.html
           logs/*.txt
         retention-days: 30

@@ -149,28 +149,28 @@ stages:
 
       - task: PublishPipelineArtifact@1
         inputs:
-          targetPath: '$(Pipeline.Workspace)/s/reports/playwright-report/'
+          targetPath: '$(Build.SourcesDirectory)/reports/playwright-report/'
           artifactName: 'ReporteHTML-$(vmImage)'
         condition: always()
         displayName: 'Generar artefacto de Reporte HTML para $(vmImage)'
 
       - task: PublishPipelineArtifact@1
         inputs:
-          targetPath: '$(Pipeline.Workspace)/s/reports/K6-report/'
+          targetPath: '$(Build.SourcesDirectory)/reports/K6-report/'
           artifactName: 'ReporteK6-$(vmImage)'
         condition: always()
         displayName: 'Generar artefacto de Reporte K6 para $(vmImage)'
 
       - task: PublishPipelineArtifact@1
         inputs:
-          targetPath: '$(Pipeline.Workspace)/s/logs/'
+          targetPath: '$(Build.SourcesDirectory)/logs/'
           artifactName: 'Logs-$(vmImage)'
         condition: always()
         displayName: 'Generar artefacto de logs para $(vmImage)'
 
       - task: PublishTestResults@2
         inputs:
-          testResultsFiles: '$(Pipeline.Workspace)/s/reports/temp/xml/*.xml'
+          testResultsFiles: '$(Build.SourcesDirectory)/reports/temp/xml/*.xml'
           mergeTestResults: true
           testRunTitle: 'Cucumber JUnit Results'
           publishRunAttachments: true
