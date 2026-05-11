@@ -980,6 +980,56 @@
       ]
     },
     {
+      "name": "Obtener item linked de un caso id",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "username",
+              "value": "\"\"",
+              "type": "string"
+            },
+            {
+              "key": "password",
+              "value": "{{Tokent}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "https://dev.azure.com/{{Organizacion}}/{{Proyecto}}/_apis/wit/workitems/{{testCaseID}}?$expand=relations&api-version=7.1",
+          "protocol": "https",
+          "host": [
+            "dev",
+            "azure",
+            "com"
+          ],
+          "path": [
+            "{{Organizacion}}",
+            "{{Proyecto}}",
+            "_apis",
+            "wit",
+            "workitems",
+            "{{testCaseID}}"
+          ],
+          "query": [
+            {
+              "key": "$expand",
+              "value": "relations"
+            },
+            {
+              "key": "api-version",
+              "value": "7.1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "Obtener toda la informacion por testCaseID",
       "request": {
         "auth": {

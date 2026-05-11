@@ -2,6 +2,7 @@ import { test, expect } from '../../../config/fixtures/index';
 import { ConsultaRNCFlow } from '../../flows/portal/consultaRNC.flow';
 
 const DATA_FILE = 'portal/consultaRnc';
+process.env.AZURE_TESTSUITE_ID='31';
 
 test.describe('Regression de consulta RNC', () => {
   
@@ -11,7 +12,7 @@ test.describe('Regression de consulta RNC', () => {
     });
   });
 
-  test('Usuario consulta rnc correctamente - "casoValidos"', { tag: ['@smoke', '@regression', '@first'] }, async ({ consultaRNCPage, worldData }) => {
+  test('Usuario consulta rnc correctamente - "casoValidos"', { tag: ['@smoke', '@regression', '@first','@TC32'] }, async ({ consultaRNCPage, worldData }) => {
     const flow = new ConsultaRNCFlow(consultaRNCPage);
 
     await test.step('Given Cargar datos del archivo "consultaRnc" para el caso "casoValidos"', async () => {

@@ -30,5 +30,6 @@
         "performanceData":"Benchmark",
         "flows":"Layout",
         "K6-report":"Resource",
+        "integracion-azure":"Plugin",
     }
 }
