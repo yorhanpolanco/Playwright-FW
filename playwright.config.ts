@@ -12,20 +12,21 @@ export default defineConfig({
   timeout: 60 * 1000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 1,
+  retries: process.env.CI ? 2 : 2,
   workers: process.env.CI
     ? 2
     : parseInt(process.env.WORKERS || '1'),
   reporter: [
-    ['html',   { outputFolder: `reports/playwright-report/${process.env.Report}` }],
+    ['html', { outputFolder: `reports/playwright-report/${process.env.Report ?? 'latest'}`, open: 'never' }],
     ['junit',  { outputFile:   `reports/temp/xml/results.xml`  }],
     ['json',   { outputFile:   `reports/temp/json/results.json` }],
-    ['./src/config/CustomReporter.ts']
+    ['./src/config/CustomReporter.ts'],
+    ['./src/config/integracion-azure/AzureIntegrationReporter.ts'],
   ],
   use: {
     launchOptions: {
       logger: {
-        isEnabled: (name, severity) => severity !== 'verbose',
+        isEnabled: (_name, severity) => severity !== 'verbose',
         log: async (_name, severity, message) => {
           await Logs.agregarLineaAlLog(`${severity}: ${message}`);
         }

@@ -3,13 +3,14 @@ import { EjecucionAPIFlow } from '../../flows/API/ejecucionAPI.flow';
 import { obtenerCasosDeData } from '../../../config/fixtures/worldData.fixture';
 
 const DATA_FILE = 'API/apiExample';
+process.env.AZURE_TESTSUITE_ID='31';
 
 const casos =obtenerCasosDeData(DATA_FILE);
 
 test.describe('Ejecucion de Api', () => {
   
   for (const caso of casos) {
-    test(`Ejecutar api - "${caso}"`, { tag: ['@smoke', '@regression', '@smokeApi','@TC012'] }, async ({ apiService, worldData }) => {
+    test(`Ejecutar api - "${caso}"`, { tag: ['@smoke', '@regression', '@smokeApi','@TC12'] }, async ({ apiService, worldData }) => {
       const flow = new EjecucionAPIFlow(apiService, worldData);
 
 

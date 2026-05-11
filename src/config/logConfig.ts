@@ -2,7 +2,9 @@ import fs from 'fs';
 
 class Logs {
     static get workerTag(): string {
-        return `[W${process.env.TEST_WORKER_INDEX || '?'}]`;
+        return process.env.TEST_WORKER_INDEX !== undefined
+            ? `[W${process.env.TEST_WORKER_INDEX}]`
+            : '[main]';
     }
 
     static #obtenerFechaYHoraActual(): string {

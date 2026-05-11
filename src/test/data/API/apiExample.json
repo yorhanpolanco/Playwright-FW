@@ -14,7 +14,7 @@
     },
     "escenario2": {
         "metodo": "get",
-        "statusEsperado": 404,
+        "statusEsperado": 200,
         "urlBase": "%API_PET_BASE_URL%",
         "endpoint": "/v2/pet/9223372036854764825",
         "header": {
