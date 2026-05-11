@@ -22,6 +22,7 @@ import { ActiveDefectRegistry }    from './ActiveDefectRegistry';
 import { DuplicateBugDetector }    from './DuplicateBugDetector';
 import { BugManager }              from './BugManager';
 import { ResultPublisher }         from './ResultPublisher';
+import type { EvidenceAttachment } from './types/azure.types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AzureIntegrationReporter
@@ -60,6 +61,13 @@ export default class AzureIntegrationReporter implements Reporter {
 
   private initPromise: Promise<void> | null = null;
   private enabled = false;
+
+  // Tracks the publication promise of every test that reaches the publish step.
+  // onTestEnd is declared as void in Playwright's Reporter interface, so the
+  // dispatcher does not await its return value — the Promise runs fire-and-forget.
+  // onEnd awaits this array before finalising the run to guarantee the last
+  // test's Azure operations complete even when the process would otherwise exit.
+  private readonly pendingPublications: Promise<void>[] = [];
 
   // ── onBegin ────────────────────────────────────────────────────────────────
 
@@ -205,7 +213,7 @@ export default class AzureIntegrationReporter implements Reporter {
       );
     }
 
-    await this.safePublish(async () => {
+    const publication = this.safePublish(async () => {
 
       if (result.status === 'passed') {
         const priorFails = allAttempts.filter((a) => a.status !== 'passed');
@@ -226,7 +234,7 @@ export default class AzureIntegrationReporter implements Reporter {
             .flatMap((a) => {
               const retryIndex = a.retry > 0 ? a.retry : undefined;
               return EvidenceCollector.stampNames(a.evidences, executionIndex, retryIndex);
-            });
+          });
 
           await this.publisher.publishFlaky({
             tcId,
@@ -265,12 +273,15 @@ export default class AzureIntegrationReporter implements Reporter {
         });
       }
     });
+    this.pendingPublications.push(publication);
+    await publication;
   }
 
   // ── onEnd ──────────────────────────────────────────────────────────────────
 
   async onEnd(_suite: FullResult): Promise<void> {
     if (!this.enabled) return;
+    await Promise.allSettled(this.pendingPublications);
     await this.initPromise;
     await this.safePublish(() => this.resultSvc.finalize());
     await Logs.agregarLineaAlLogHeader(

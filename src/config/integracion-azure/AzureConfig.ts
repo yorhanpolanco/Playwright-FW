@@ -32,6 +32,7 @@ export function loadAzureConfig(): AzureConfiguration {
     enableBugCreation: (process.env.ENABLE_BUG_CREATION ?? 'true') !== 'false',
     flakyThreshold: parseInt(process.env.FLAKY_THRESHOLD ?? '3', 10),
     enableTraceAttachments: (process.env.ENABLE_TRACE_ATTACHMENTS ?? 'true') !== 'false',
+    tlsRejectUnauthorized: process.env.AZURE_TLS_REJECT_UNAUTHORIZED === 'true',
   };
 
   return _config;

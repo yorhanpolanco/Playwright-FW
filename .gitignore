@@ -4,3 +4,4 @@ node_modules/
 /logs/*.txt
 /reports/*
 /test-results/
+.env.yorhan

@@ -15,6 +15,7 @@ export interface AzureConfiguration {
   enableBugCreation: boolean;
   flakyThreshold: number;
   enableTraceAttachments: boolean;
+  tlsRejectUnauthorized: boolean;
 }
 
 // ── Azure DevOps REST API shapes ───────────────────────────────────────────────

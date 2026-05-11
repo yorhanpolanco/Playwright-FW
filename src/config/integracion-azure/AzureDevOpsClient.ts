@@ -48,12 +48,21 @@ export class AzureDevOpsClient {
   private readonly authHeader: string;
   private readonly apiVersion: string;
   private readonly clientMaxRetries: number;
+  // Persistent agent reuses TCP connections across sequential uploads, avoiding
+  // a full TLS handshake per attachment (~100-200ms saved per evidence file).
+  private readonly agent: https.Agent;
 
   constructor(private readonly cfg: AzureConfiguration) {
     this.baseUrl     = `https://dev.azure.com/${cfg.org}/${encodeURIComponent(cfg.project)}`;
     this.authHeader  = `Basic ${Buffer.from(`:${cfg.pat}`).toString('base64')}`;
     this.apiVersion  = cfg.apiVersion;
-    this.clientMaxRetries = 3;
+    this.clientMaxRetries = cfg.maxRetries;
+    this.agent = new https.Agent({
+      keepAlive:            true,
+      keepAliveMsecs:       10_000,
+      maxSockets:           4,
+      rejectUnauthorized:   cfg.tlsRejectUnauthorized,
+    });
   }
 
   // ── Test Plan / Suite / Points ───────────────────────────────────────────────
@@ -254,13 +263,13 @@ export class AzureDevOpsClient {
 
     return new Promise<T>((resolve, reject) => {
       const reqOpts: https.RequestOptions = {
-        hostname:           parsed.hostname,
-        port:               443,
-        path:               `${parsed.pathname}${parsed.search}`,
-        method:             opts.method,
+        hostname: parsed.hostname,
+        port:     443,
+        path:     `${parsed.pathname}${parsed.search}`,
+        method:   opts.method,
         headers,
-        rejectUnauthorized: false,
-        timeout:            30_000,
+        agent:    this.agent,
+        timeout:  30_000,
       };
 
       const req = https.request(reqOpts, (res) => {
