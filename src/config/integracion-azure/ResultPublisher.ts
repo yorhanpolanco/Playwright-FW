@@ -66,14 +66,17 @@ export class ResultPublisher {
   // ── FLAKY ──────────────────────────────────────────────────────────────────
 
   async publishFlaky(params: {
-    tcId:         string;
-    testTitle:    string;
-    finalAttempt: TestAttemptRecord;
-    allAttempts:  TestAttemptRecord[];
-    evidences:    EvidenceAttachment[];
-    flakyReason:  string;
+    tcId:             string;
+    testTitle:        string;
+    finalAttempt:     TestAttemptRecord;
+    allAttempts:      TestAttemptRecord[];
+    /** Evidencias de todos los intentos fallidos (retry-N_ prefijados) — estado: failed. */
+    failedEvidences:  EvidenceAttachment[];
+    /** Evidencias del intento que pasó (retry-N_ prefijado) — estado: passed. */
+    passedEvidences:  EvidenceAttachment[];
+    flakyReason:      string;
   }): Promise<void> {
-    const { tcId, testTitle, finalAttempt, evidences, flakyReason } = params;
+    const { tcId, testTitle, finalAttempt, failedEvidences, passedEvidences, flakyReason } = params;
 
     const ids = await this.resultService.updateResult(tcId, 'Passed', {
       comment:       `Test flaky ⚠️ — pasó en reintento. ${flakyReason}`,
@@ -84,16 +87,24 @@ export class ResultPublisher {
 
     if (!ids) return;
 
-    // Upload all evidences: screenshots + videos from every attempt, plus traces
-    // from any failed attempts. EvidenceCollector already omits traces for
-    // passed attempts, so allEvidences will only carry failure-attempt traces —
-    // the most useful artifacts for understanding flaky behavior.
-    await this.safeUpload(() =>
-      this.attachments.uploadEvidencesToTestResult(ids.runId, ids.resultId, evidences, 'passed'),
-    );
+    // Adjuntar evidencias de los intentos fallidos con estado 'failed':
+    // screenshots, videos y traces de cada reintento que falló.
+    if (failedEvidences.length > 0) {
+      await this.safeUpload(() =>
+        this.attachments.uploadEvidencesToTestResult(ids.runId, ids.resultId, failedEvidences, 'failed'),
+      );
+    }
+
+    // Adjuntar evidencias del reintento que pasó con estado 'passed'.
+    if (passedEvidences.length > 0) {
+      await this.safeUpload(() =>
+        this.attachments.uploadEvidencesToTestResult(ids.runId, ids.resultId, passedEvidences, 'passed'),
+      );
+    }
 
     await Logs.agregarLineaAlLog(
-      `[Azure] FLAKY publicado para TC${tcId} — "${testTitle}" — ${flakyReason}`,
+      `[Azure] FLAKY publicado para TC${tcId} — "${testTitle}" — ${flakyReason}` +
+      ` (${failedEvidences.length} evidencias de fallos, ${passedEvidences.length} evidencias del paso)`,
     );
   }
 

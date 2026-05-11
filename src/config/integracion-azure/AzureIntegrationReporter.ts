@@ -211,13 +211,31 @@ export default class AzureIntegrationReporter implements Reporter {
         const priorFails = allAttempts.filter((a) => a.status !== 'passed');
         if (priorFails.length > 0) {
           const flaky = this.flakyDetector.analyze(allAttempts);
+
+          // Evidencias de cada intento fallido → se adjuntan con estado 'failed'
+          const failedEvidences = allAttempts
+            .filter((a) => a.status !== 'passed')
+            .flatMap((a) => {
+              const retryIndex = a.retry > 0 ? a.retry : undefined;
+              return EvidenceCollector.stampNames(a.evidences, executionIndex, retryIndex);
+            });
+
+          // Evidencias del reintento que pasó → se adjuntan con estado 'passed'
+          const passedEvidences = allAttempts
+            .filter((a) => a.status === 'passed')
+            .flatMap((a) => {
+              const retryIndex = a.retry > 0 ? a.retry : undefined;
+              return EvidenceCollector.stampNames(a.evidences, executionIndex, retryIndex);
+            });
+
           await this.publisher.publishFlaky({
             tcId,
-            testTitle:    test.title,
-            finalAttempt: finalAtt,
+            testTitle:       test.title,
+            finalAttempt:    finalAtt,
             allAttempts,
-            evidences:    allEvidences,
-            flakyReason:  flaky.reason ?? 'Pasó en reintento',
+            failedEvidences,
+            passedEvidences,
+            flakyReason:     flaky.reason ?? 'Pasó en reintento',
           });
         } else {
           await this.publisher.publishPass({
