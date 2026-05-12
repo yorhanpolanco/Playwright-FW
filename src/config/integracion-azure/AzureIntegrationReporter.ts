@@ -71,7 +71,7 @@ export default class AzureIntegrationReporter implements Reporter {
 
   // ── onBegin ────────────────────────────────────────────────────────────────
 
-  onBegin(_config: FullConfig, suite: Suite): void {
+  onBegin(config: FullConfig, suite: Suite): void {
     if (!isAzureIntegrationEnabled()) {
       void Logs.agregarLineaAlLog(
         '[Azure] Integración deshabilitada (AZURE_DEVOPS_INTEGRATION_ENABLED=false) — ' +
@@ -88,7 +88,7 @@ export default class AzureIntegrationReporter implements Reporter {
     }
 
     this.enabled = true;
-    this.bootstrapServices();
+    this.bootstrapServices(config);
 
     // Sync: builds the entire testId→tcId + iterationIndex maps
     this.resolver.buildMapping(suite);
@@ -291,13 +291,14 @@ export default class AzureIntegrationReporter implements Reporter {
 
   // ── Service bootstrap ──────────────────────────────────────────────────────
 
-  private bootstrapServices(): void {
+  private bootstrapServices(config: FullConfig): void {
     const cfg = loadAzureConfig();
+    const maxRetries = Math.max(0, ...config.projects.map((p) => p.retries ?? 0));
 
     this.client        = new AzureDevOpsClient(cfg);
     this.resolver      = new TestCaseResolver();
     this.tracker       = new ExecutionTracker();
-    this.flakyDetector = new FlakyDetector();
+    this.flakyDetector = new FlakyDetector(maxRetries + 1);
     this.fingerprinter = new ErrorFingerprintService();
     this.registry      = new ActiveDefectRegistry();
     this.evidence      = new EvidenceCollector(cfg);

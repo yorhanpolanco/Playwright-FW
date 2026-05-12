@@ -13,7 +13,6 @@ export interface AzureConfiguration {
   apiVersion: string;
   maxRetries: number;
   enableBugCreation: boolean;
-  flakyThreshold: number;
   enableTraceAttachments: boolean;
   tlsRejectUnauthorized: boolean;
 }

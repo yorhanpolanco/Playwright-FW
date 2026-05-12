@@ -9,10 +9,11 @@ import type { TestAttemptRecord, FlakyAnalysis } from './types/azure.types';
 //
 // Rules (any one is sufficient to declare flakiness):
 //  1. The test PASSED in at least one retry → definitively flaky.
-//  2. Error messages change significantly across attempts → inconsistent.
-//  3. All failures are timeout-based with no stable stack → infrastructure.
-//  4. The stack trace differs substantially between attempts (>40% difference).
-//  5. There is only one failure and it looks like a transient infrastructure
+//  2. All attempts failed AND count >= threshold → persistent failure, NOT flaky.
+//  3. Error messages change significantly across attempts → inconsistent.
+//  4. All failures are timeout-based with no stable stack → infrastructure.
+//  5. The stack trace differs substantially between attempts (>40% difference).
+//  6. There is only one failure and it looks like a transient infrastructure
 //     issue (connection reset, ECONNREFUSED, net::ERR_*).
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -36,6 +37,8 @@ const TIMEOUT_PATTERNS = [
 
 export class FlakyDetector {
 
+  constructor(private readonly threshold: number = 3) {}
+
   analyze(attempts: TestAttemptRecord[]): FlakyAnalysis {
     if (attempts.length === 0) {
       return { isFlaky: false, confidence: 0 };
@@ -56,6 +59,11 @@ export class FlakyDetector {
       (a) => a.status === 'failed' || a.status === 'timedOut',
     );
 
+    // Rule 2 — persistent failure: all attempts failed and count meets threshold
+    if (failedAttempts.length >= this.threshold) {
+      return { isFlaky: false, confidence: 0 };
+    }
+
     if (failedAttempts.length < 2) {
       // Only one recorded failure — check for infrastructure signals
       const singleMsg = failedAttempts[0]?.errorMessage ?? '';
@@ -69,7 +77,7 @@ export class FlakyDetector {
       return { isFlaky: false, confidence: 0 };
     }
 
-    // Rule 2 — error messages change across attempts
+    // Rule 3 — error messages change across attempts
     const messages = failedAttempts.map((a) => this.normalize(a.errorMessage ?? ''));
     if (this.significantlyDifferent(messages)) {
       return {
@@ -79,7 +87,7 @@ export class FlakyDetector {
       };
     }
 
-    // Rule 3 — all failures are timeouts with different stack origins
+    // Rule 4 — all failures are timeouts with different stack origins
     const allTimeouts = failedAttempts.every((a) =>
       this.isTimeoutError(a.errorMessage ?? ''),
     );
@@ -94,7 +102,7 @@ export class FlakyDetector {
       }
     }
 
-    // Rule 4 — stack traces differ substantially
+    // Rule 5 — stack traces differ substantially
     const stacks = failedAttempts
       .map((a) => a.stackTrace ?? '')
       .filter(Boolean);
