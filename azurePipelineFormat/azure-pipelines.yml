@@ -35,6 +35,7 @@ parameters:
     values:
       - ' '
       - portal
+      - API
 
   - name: feature
     displayName: 'Seleccionar feature a ejecutar'
@@ -43,8 +44,6 @@ parameters:
     values:
       - ' '
       - consultaRNC
-      - AccederDGII
-      - ejecucionOracle
       - ejecucionApi
 
   - name: tags
@@ -103,7 +102,7 @@ stages:
     #  maxParallel: 2  # Descomentar para agregar ejecucion en paralelo de multiples plataformas si existen varios agentes(hosted)
 
     variables:
-    - group: 'ConexionBD'
+    - group: 'VariablesENV'
     - name: BROWSER
       ${{ if eq( parameters.browser , '') }}:
         value: api
@@ -142,10 +141,19 @@ stages:
       - script: |
           npm run $(BROWSER) folder=${{ parameters.folder }} data_file=${{ parameters.data_file }} feature=${{ parameters.feature }} tags=$(TAGS) env=$(ENVIRONMENT) workers=${{ parameters.workers }} scenario=${{ parameters.scenario }}
         displayName: 'Ejecutar escenarios de prueba'
-        retryCountOnTaskFailure: 2
         env:
-          DB_CADENA_QASB: $(CADENA_QASB)
-          DB_PASSWORD_QASB_USER: $(PASSWORD_QASB_USER)
+          AZURE_API_SCOPE: $(AZURE_API_SCOPE)
+          AZURE_DEVOPS_INTEGRATION_ENABLED: $(AZURE_DEVOPS_INTEGRATION_ENABLED)
+          AZURE_DEVOPS_ORG: $(AZURE_DEVOPS_ORG)
+          AZURE_DEVOPS_PROJECT: $(AZURE_DEVOPS_PROJECT)
+          AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
+          AZURE_TESTPLAN_ID: $(AZURE_TESTPLAN_ID)
+          AZURE_API_VERSION: $(AZURE_API_VERSION)
+          MAX_RETRIES: $(MAX_RETRIES)
+          ENABLE_BUG_CREATION: $(ENABLE_BUG_CREATION)
+          FLAKY_THRESHOLD: $(FLAKY_THRESHOLD)
+          ENABLE_TRACE_ATTACHMENTS: $(ENABLE_TRACE_ATTACHMENTS)
+          AZURE_TLS_REJECT_UNAUTHORIZED: $(AZURE_TLS_REJECT_UNAUTHORIZED)
 
       - task: PublishPipelineArtifact@1
         inputs:

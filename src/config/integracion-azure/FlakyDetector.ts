@@ -48,7 +48,7 @@ export class FlakyDetector {
         isFlaky:          true,
         confidence:       1.0,
         passedOnAttempt:  passedAttempt.retry,
-        reason:           `El test pasó en el intento ${passedAttempt.retry + 1} — comportamiento flaky confirmado`,
+        reason:           `El test pasó en el ${passedAttempt.retry + 1} intento — comportamiento flaky confirmado`,
       };
     }
 
