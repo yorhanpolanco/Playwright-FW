@@ -20,6 +20,7 @@ parameters:
     type: string
     default: ' '
     values:
+      - ' '
       - chrome
       - firefox
       - safari
@@ -97,24 +98,24 @@ stages:
     #      poolName: 'onpremise'
     #      vmImage: 'macOs-latest'
         windows:
-          poolName: 'onpremise'
+    #      poolName: 'onpremise'
           vmImage: 'windows-latest'
     #  maxParallel: 2  # Descomentar para agregar ejecucion en paralelo de multiples plataformas si existen varios agentes(hosted)
 
     variables:
-    - group: 'VariablesENV'
+    - group: ${{ format('vg_qa_framework_{0}', parameters.env) }}
     - name: BROWSER
-      ${{ if eq( parameters.browser , '') }}:
+      ${{ if eq( parameters.browser , ' ') }}:
         value: api
       ${{ else }}:
         value: ${{ parameters.browser }}
     - name: ENVIRONMENT
-      ${{ if eq( parameters.env, '') }}:
+      ${{ if eq( parameters.env, ' ') }}:
         value: dev
       ${{ else }}:
         value: ${{ parameters.env }}
     - name: TAGS
-      ${{ if eq( parameters.tags, '') }}:
+      ${{ if eq( parameters.tags, ' ') }}:
         value: '@smokeApi'
       ${{ else }}:
         value: ${{ parameters.tags }}
@@ -122,7 +123,7 @@ stages:
       value: true
 
     pool:
-      name: $(poolName)
+  #    name: $(poolName)
       vmImage: $(vmImage)
 
     steps:
@@ -142,31 +143,20 @@ stages:
           npm run $(BROWSER) folder=${{ parameters.folder }} data_file=${{ parameters.data_file }} feature=${{ parameters.feature }} tags=$(TAGS) env=$(ENVIRONMENT) workers=${{ parameters.workers }} scenario=${{ parameters.scenario }}
         displayName: 'Ejecutar escenarios de prueba'
         env:
-          AZURE_API_SCOPE: $(AZURE_API_SCOPE)
-          AZURE_DEVOPS_INTEGRATION_ENABLED: $(AZURE_DEVOPS_INTEGRATION_ENABLED)
-          AZURE_DEVOPS_ORG: $(AZURE_DEVOPS_ORG)
-          AZURE_DEVOPS_PROJECT: $(AZURE_DEVOPS_PROJECT)
           AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
-          AZURE_TESTPLAN_ID: $(AZURE_TESTPLAN_ID)
-          AZURE_API_VERSION: $(AZURE_API_VERSION)
-          MAX_RETRIES: $(MAX_RETRIES)
-          ENABLE_BUG_CREATION: $(ENABLE_BUG_CREATION)
-          FLAKY_THRESHOLD: $(FLAKY_THRESHOLD)
-          ENABLE_TRACE_ATTACHMENTS: $(ENABLE_TRACE_ATTACHMENTS)
-          AZURE_TLS_REJECT_UNAUTHORIZED: $(AZURE_TLS_REJECT_UNAUTHORIZED)
 
       - task: PublishPipelineArtifact@1
         inputs:
           targetPath: '$(Build.SourcesDirectory)/reports/playwright-report/'
           artifactName: 'ReporteHTML-$(vmImage)'
-        condition: always()
+        condition: and(always(), ne(variables['BROWSER'], 'perf'))
         displayName: 'Generar artefacto de Reporte HTML para $(vmImage)'
 
       - task: PublishPipelineArtifact@1
         inputs:
           targetPath: '$(Build.SourcesDirectory)/reports/K6-report/'
           artifactName: 'ReporteK6-$(vmImage)'
-        condition: always()
+        condition: and(always(), eq(variables['BROWSER'], 'perf'))
         displayName: 'Generar artefacto de Reporte K6 para $(vmImage)'
 
       - task: PublishPipelineArtifact@1
