@@ -61,7 +61,7 @@ parameters:
   - name: env
     displayName: 'Seleccionar ambiente de prueba'
     type: string
-    default: 'dev'
+    default: ' '
     values:
       - ' '
       - dev
@@ -103,22 +103,35 @@ stages:
     #  maxParallel: 2  # Descomentar para agregar ejecucion en paralelo de multiples plataformas si existen varios agentes(hosted)
 
     variables:
-    - group: ${{ format('vg_qa_framework_{0}', parameters.env) }}
-    - name: BROWSER
-      ${{ if eq( parameters.browser , ' ') }}:
-        value: api
-      ${{ else }}:
+    - ${{ if eq(parameters.env, ' ') }}:
+      - group: vg_qa_framework_dev
+    - ${{ else }}:
+      - group: ${{ format('vg_qa_framework_{0}', parameters.env) }}
+    - group: vg-qa-framework-pipelines-conf
+    - ${{ if ne(parameters.browser, ' ') }}:
+      - name: BROWSER
         value: ${{ parameters.browser }}
-    - name: ENVIRONMENT
-      ${{ if eq( parameters.env, ' ') }}:
-        value: dev
-      ${{ else }}:
+    - ${{ if ne(parameters.env, ' ') }}:
+      - name: ENVIRONMENT
         value: ${{ parameters.env }}
-    - name: TAGS
-      ${{ if eq( parameters.tags, ' ') }}:
-        value: '@smokeApi'
-      ${{ else }}:
+    - ${{ if ne(parameters.tags, ' ') }}:
+      - name: TAGS
         value: ${{ parameters.tags }}
+    - ${{ if ne(parameters.folder, ' ') }}:
+      - name: FOLDER
+        value: ${{ parameters.folder }}
+    - ${{ if ne(parameters.feature, ' ') }}:
+      - name: FEATURE
+        value: ${{ parameters.feature }}
+    - ${{ if ne(parameters.data_file, ' ') }}:
+      - name: DATA_FILE
+        value: ${{ parameters.data_file }}
+    - ${{ if ne(parameters.workers, ' ') }}:
+      - name: WORKERS
+        value: ${{ parameters.workers }}
+    - ${{ if ne(parameters.scenario, ' ') }}:
+      - name: SCENARIO
+        value: ${{ parameters.scenario }}
     - name: HEADLESS
       value: true
 
@@ -140,7 +153,7 @@ stages:
         displayName: 'Instalar dependencias de CI'
 
       - script: |
-          npm run $(BROWSER) folder=${{ parameters.folder }} data_file=${{ parameters.data_file }} feature=${{ parameters.feature }} tags=$(TAGS) env=$(ENVIRONMENT) workers=${{ parameters.workers }} scenario=${{ parameters.scenario }}
+          npm run $(BROWSER) folder=$(FOLDER) data_file=$(DATA_FILE) feature=$(FEATURE) tags=$(TAGS) env=$(ENVIRONMENT) workers=$(WORKERS) scenario=$(SCENARIO)
         displayName: 'Ejecutar escenarios de prueba'
         env:
           AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
