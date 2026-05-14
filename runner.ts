@@ -46,7 +46,7 @@ async function run() {
     const contexto =
         sanitize(FEATURE) ??
         sanitize(FOLDER) ??
-        sanitize(TAGS?.replace(/@/g, ''));
+        sanitize(TAGS?.replace(/@/g, '').replace(/,/g, '_'));
 
     const nombre_report = `${ENV}-${BROWSER}${contexto ? `-${contexto}` : ''}-${fecha}`;
 
@@ -77,9 +77,15 @@ async function run() {
 
     if (opts.browser) pwArgs.push(`--project=${opts.browser}`);
     if (opts.tags) {
-        // En spawn, los strings pasados a los args no necesitan comillas adyacentes del cmd, las removemos
-        const cleanTags = opts.tags.replace(/^['"]|['"]$/g, '');
-        pwArgs.push(`--grep=${cleanTags}`);
+        // Eliminar comillas externas si el shell las incluyó
+        const rawTags = opts.tags.replace(/^['"]|['"]$/g, '');
+        const tagList = rawTags.split(',').map(t => t.trim()).filter(Boolean);
+
+        if (tagList.length === 1) {
+            pwArgs.push(`--grep=${tagList[0]}`);
+        } else {
+            pwArgs.push(`--grep="${tagList.join('|')}"`);
+        }
     }
     if (opts.workers) pwArgs.push(`--workers=${opts.workers}`);
 
