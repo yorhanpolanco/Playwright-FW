@@ -30,10 +30,10 @@ const THRESHOLDS_BASE = {
 // Para activar o desactivar perfiles, comentar/descomentar las entradas del array.
 const SPECS = [
   { key: 'low',       label: 'carga_baja',  rateFn: (t: number) => percent(t, 0.01), preFn: (_: number) => 1,               maxFn: (t: number) => percent(t, 0.01), duration: '1m',  startMin: 0   },
-   { key: 'medium',    label: 'carga_media', rateFn: (t: number) => percent(t, 0.5),  preFn: (t: number) => percent(t, 0.125), maxFn: (t: number) => percent(t, 0.5),  duration: '30m', startMin: 1   },
-   { key: 'high',      label: 'carga_alta',  rateFn: (t: number) => t,                preFn: (t: number) => percent(t, 0.25),  maxFn: (t: number) => t,                duration: '60m', startMin: 31  },
-   { key: 'stress',    label: 'estres',      rateFn: (t: number) => t * 2,            preFn: (t: number) => percent(t, 0.5),   maxFn: (t: number) => t * 2,            duration: '60m', startMin: 91  },
-   { key: 'endurance', label: 'resistencia', rateFn: (t: number) => t * 1.5,          preFn: (t: number) => percent(t, 0.5),   maxFn: (t: number) => t * 1.5,          duration: '12h', startMin: 151 },
+  // { key: 'medium',    label: 'carga_media', rateFn: (t: number) => percent(t, 0.5),  preFn: (t: number) => percent(t, 0.125), maxFn: (t: number) => percent(t, 0.5),  duration: '30m', startMin: 1   },
+  // { key: 'high',      label: 'carga_alta',  rateFn: (t: number) => t,                preFn: (t: number) => percent(t, 0.25),  maxFn: (t: number) => t,                duration: '60m', startMin: 31  },
+  // { key: 'stress',    label: 'estres',      rateFn: (t: number) => t * 2,            preFn: (t: number) => percent(t, 0.5),   maxFn: (t: number) => t * 2,            duration: '60m', startMin: 91  },
+  // { key: 'endurance', label: 'resistencia', rateFn: (t: number) => t * 1.5,          preFn: (t: number) => percent(t, 0.5),   maxFn: (t: number) => t * 1.5,          duration: '12h', startMin: 151 },
 ] as const;
 
 // Tiempo total del ciclo: startMin del último perfil + su duración en minutos.

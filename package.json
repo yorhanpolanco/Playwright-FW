@@ -12,6 +12,7 @@
     "safari": "ts-node runner.ts browser=webkit",
     "api": "ts-node runner.ts browser=api",
     "perf": "ts-node ejecucionPerformance.ts",
+    "ratelimit": "ts-node ejecucionRateLimit.ts",
     "install:k6": "ts-node instalarK6.ts",
     "install:playwright": "npx playwright install --with-deps",
     "postinstall": "npm-run-all install:k6 install:playwright"

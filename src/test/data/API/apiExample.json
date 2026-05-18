@@ -10,7 +10,12 @@
         },
         "autorizacion": "",
         "payload": "",
-        "schemaRef": "apiExampleSchemas"
+        "schemaRef": "apiExampleSchemas",
+        "rateLimit": {
+            "peticionesPermitidas": 5,
+            "statusRateLimit": 429,
+            "retryAfterSegundos": 10
+        }
     },
     "escenario2": {
         "metodo": "get",
@@ -22,7 +27,12 @@
             "Content-Type": "application/json"
         },
         "autorizacion": "",
-        "payload": ""
+        "payload": "",
+        "rateLimit": {
+            "peticionesPermitidas": 5,
+            "statusRateLimit": 429,
+            "retryAfterSegundos": 10
+        }
     },
     "escenario3": {
         "metodo": "post",
@@ -53,6 +63,11 @@
             "status": "available"
         },
         "schemaRef": "apiExampleSchemas",
-        "transacciones": 400
+        "transacciones": 400,
+        "rateLimit": {
+            "peticionesPermitidas": 5,
+            "statusRateLimit": 429,
+            "retryAfterSegundos": 10
+        }
     }
 }
