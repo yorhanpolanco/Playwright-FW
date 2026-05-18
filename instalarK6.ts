@@ -1,5 +1,5 @@
-import { execSync } from 'child_process';
-import os from 'os';
+import { execSync } from 'node:child_process';
+import os from 'node:os';
 
 let k6Instalado = false;
 

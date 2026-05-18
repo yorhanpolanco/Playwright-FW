@@ -27,63 +27,81 @@ function matchesType(value: any, tipo: string): boolean {
   return actual === tipo || (tipo === 'number' && actual === 'integer');
 }
 
-function validarValor(value: any, schema: JsonSchema, ruta: string): string[] {
-  const errores: string[] = [];
+function validarTipo(value: any, schema: JsonSchema, label: string): string | null {
+  if (schema.type === undefined) return null;
+  const tipos = Array.isArray(schema.type) ? schema.type : [schema.type];
+  if (!tipos.some(t => matchesType(value, t))) {
+    return `"${label}": tipo esperado ${JSON.stringify(schema.type)}, recibido "${getJsonType(value)}"`;
+  }
+  return null;
+}
+
+function validarEnum(value: any, schema: JsonSchema, label: string): string | null {
+  if (schema.enum === undefined) return null;
+  if (!schema.enum.some((v: any) => v === value)) {
+    return `"${label}": "${value}" no permitido. Valores válidos: [${schema.enum.join(', ')}]`;
+  }
+  return null;
+}
+
+function validarRequired(value: any, schema: JsonSchema, label: string): string[] {
+  if (!schema.required) return [];
+  return schema.required
+    .filter(key => !(key in value))
+    .map(key => `"${label}": campo requerido "${key}" ausente`);
+}
+
+function validarProperties(value: any, schema: JsonSchema, ruta: string): string[] {
+  if (!schema.properties) return [];
   const label = ruta || 'root';
+  const errores: string[] = [];
 
-  // type: string | string[] — union: válido si coincide con CUALQUIER tipo del array
-  if (schema.type !== undefined) {
-    const tipos = Array.isArray(schema.type) ? schema.type : [schema.type];
-    if (!tipos.some(t => matchesType(value, t))) {
-      const actual = getJsonType(value);
-      errores.push(`"${label}": tipo esperado ${JSON.stringify(schema.type)}, recibido "${actual}"`);
-      return errores;
+  for (const [key, propSchema] of Object.entries(schema.properties)) {
+    if (key in value) {
+      errores.push(...validarValor(value[key], propSchema, ruta ? `${ruta}.${key}` : key));
     }
   }
 
-  // enum
-  if (schema.enum !== undefined) {
-    if (!schema.enum.some((v: any) => v === value)) {
-      errores.push(`"${label}": "${value}" no permitido. Valores válidos: [${schema.enum.join(', ')}]`);
-    }
-  }
-
-  // object
-  const esObjeto = typeof value === 'object' && value !== null && !Array.isArray(value);
-  if (esObjeto) {
-    if (schema.required) {
-      for (const key of schema.required) {
-        if (!(key in value)) {
-          errores.push(`"${label}": campo requerido "${key}" ausente`);
-        }
+  if (schema.additionalProperties === false) {
+    for (const key of Object.keys(value)) {
+      if (!(key in (schema.properties as object))) {
+        errores.push(`"${label}": propiedad adicional no permitida "${key}"`);
       }
-    }
-
-    if (schema.properties) {
-      for (const [key, propSchema] of Object.entries(schema.properties)) {
-        if (key in value) {
-          errores.push(...validarValor(value[key], propSchema, ruta ? `${ruta}.${key}` : key));
-        }
-      }
-
-      if (schema.additionalProperties === false) {
-        for (const key of Object.keys(value)) {
-          if (!(key in (schema.properties as object))) {
-            errores.push(`"${label}": propiedad adicional no permitida "${key}"`);
-          }
-        }
-      }
-    }
-  }
-
-  // array
-  if (Array.isArray(value) && schema.items) {
-    for (let i = 0; i < value.length; i++) {
-      errores.push(...validarValor(value[i], schema.items, ruta ? `${ruta}[${i}]` : `[${i}]`));
     }
   }
 
   return errores;
+}
+
+function validarObjeto(value: any, schema: JsonSchema, ruta: string): string[] {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return [];
+  const label = ruta || 'root';
+  return [
+    ...validarRequired(value, schema, label),
+    ...validarProperties(value, schema, ruta),
+  ];
+}
+
+function validarArray(value: any, schema: JsonSchema, ruta: string): string[] {
+  if (!Array.isArray(value) || !schema.items) return [];
+  const errores: string[] = [];
+  for (let i = 0; i < value.length; i++) {
+    errores.push(...validarValor(value[i], schema.items, ruta ? `${ruta}[${i}]` : `[${i}]`));
+  }
+  return errores;
+}
+
+function validarValor(value: any, schema: JsonSchema, ruta: string): string[] {
+  const label = ruta || 'root';
+  const tipoError = validarTipo(value, schema, label);
+  if (tipoError) return [tipoError];
+
+  const enumError = validarEnum(value, schema, label);
+  return [
+    ...(enumError ? [enumError] : []),
+    ...validarObjeto(value, schema, ruta),
+    ...validarArray(value, schema, ruta),
+  ];
 }
 
 /**

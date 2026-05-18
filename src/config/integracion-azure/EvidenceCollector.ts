@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import path from 'path';
 import type { TestResult } from '@playwright/test/reporter';
 import type { EvidenceAttachment, AzureConfiguration } from './types/azure.types';
@@ -25,6 +25,16 @@ const TRACE_NAMES       = new Set(['trace']);
 const DATA_JSON_NAMES   = new Set(['datajson']);
 const DATA_API_NAMES    = new Set(['dataApiResponse'.toLowerCase()]);
 
+type AttachmentSpec = { mime: string; outputName?: string; onlyOnFailure?: boolean };
+
+const ATTACHMENT_SPECS: [Set<string>, AttachmentSpec][] = [
+  [SCREENSHOT_NAMES, { mime: 'image/png' }],
+  [VIDEO_NAMES,      { mime: 'video/webm' }],
+  [TRACE_NAMES,      { mime: 'application/zip', onlyOnFailure: true }],
+  [DATA_JSON_NAMES,  { mime: 'application/json', outputName: 'dataJson' }],
+  [DATA_API_NAMES,   { mime: 'application/json', outputName: 'dataApiResponse' }],
+];
+
 export class EvidenceCollector {
   constructor(private readonly cfg: AzureConfiguration) {}
 
@@ -41,39 +51,8 @@ export class EvidenceCollector {
     const evidences: EvidenceAttachment[] = [];
 
     for (const attachment of result.attachments) {
-      const nameLower = attachment.name.toLowerCase();
-
-      if (SCREENSHOT_NAMES.has(nameLower)) {
-        const evidence = this.buildEvidence(attachment.path, attachment.body, attachment.name, 'image/png');
-        if (evidence) evidences.push(evidence);
-        continue;
-      }
-
-      if (VIDEO_NAMES.has(nameLower)) {
-        const evidence = this.buildEvidence(attachment.path, attachment.body, attachment.name, 'video/webm');
-        if (evidence) evidences.push(evidence);
-        continue;
-      }
-
-      if (TRACE_NAMES.has(nameLower)) {
-        if (!isPassed && this.cfg.enableTraceAttachments) {
-          const evidence = this.buildEvidence(attachment.path, attachment.body, attachment.name, 'application/zip');
-          if (evidence) evidences.push(evidence);
-        }
-        continue;
-      }
-
-      if (DATA_JSON_NAMES.has(nameLower)) {
-        const evidence = this.buildEvidence(attachment.path, attachment.body, 'dataJson', 'application/json');
-        if (evidence) evidences.push(evidence);
-        continue;
-      }
-
-      if (DATA_API_NAMES.has(nameLower)) {
-        const evidence = this.buildEvidence(attachment.path, attachment.body, 'dataApiResponse', 'application/json');
-        if (evidence) evidences.push(evidence);
-        continue;
-      }
+      const evidence = this.resolveAttachment(attachment, isPassed);
+      if (evidence) evidences.push(evidence);
     }
 
     void Logs.agregarLineaAlLog(
@@ -81,6 +60,21 @@ export class EvidenceCollector {
     );
 
     return evidences;
+  }
+
+  private resolveAttachment(
+    attachment: TestResult['attachments'][number],
+    isPassed: boolean,
+  ): EvidenceAttachment | undefined {
+    const nameLower = attachment.name.toLowerCase();
+
+    for (const [names, spec] of ATTACHMENT_SPECS) {
+      if (!names.has(nameLower)) continue;
+      if (spec.onlyOnFailure && (isPassed || !this.cfg.enableTraceAttachments)) return undefined;
+      return this.buildEvidence(attachment.path, attachment.body, spec.outputName ?? attachment.name, spec.mime);
+    }
+
+    return undefined;
   }
 
   /**

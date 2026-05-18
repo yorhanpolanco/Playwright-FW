@@ -1,6 +1,6 @@
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import fs from 'fs';
+import fs from 'node:fs';
 import path from 'path';
 
 const ajv = new Ajv({
