@@ -175,6 +175,9 @@ Specs (WHAT to test)
 │   │   │   └── index.ts                    # Exportaciones públicas del módulo
 │   │   ├── performance/
 │   │   │   ├── loadData.ts                 # Carga escenario y schema desde los JSON compartidos
+│   │   │   ├── rateLimitHandler.ts         # Ejecuta las fases del rate limit (dentro/sobre límite/retry-after)
+│   │   │   ├── rateLimitScenarioConfig.ts  # Genera opciones k6: iteraciones y tiempos por escenario de rate limit
+│   │   │   ├── rateLimitTypes.ts           # Tipos RateLimitConfig y RateLimitData + validación asRateLimitData
 │   │   │   ├── replacePlaceHoldersPerf.ts  # Resuelve %VARIABLE% con valores de __ENV en k6
 │   │   │   ├── requestHandler.ts           # Envía request HTTP en k6 y valida status + schema
 │   │   │   ├── scenarioConfig.ts           # Genera opciones k6: perfiles de carga y thresholds
@@ -196,7 +199,8 @@ Specs (WHAT to test)
 │   │   │   └── portal/
 │   │   │       └── consultaRNC.flow.ts              # Navegación por menú y búsqueda por RNC
 │   │   ├── performance/
-│   │   │   └── performanceTest.ts                   # Entry point de k6
+│   │   │   ├── performanceTest.ts                   # Entry point de k6 para pruebas de carga
+│   │   │   └── rateLimitTest.ts                     # Entry point de k6 para pruebas de rate limit y retry-after
 │   │   ├── pom/
 │   │   │   └── portal/
 │   │   │       └── consultaRNC.ts                   # Page Object Model: selectores y acciones RNC
@@ -216,6 +220,7 @@ Specs (WHAT to test)
 ├── .gitignore
 ├── Docker_Command.txt                               # Referencia rápida de comandos Docker
 ├── ejecucionPerformance.ts                          # Runner k6: carga env, inyecta token Azure y ejecuta k6
+├── ejecucionRateLimit.ts                            # Runner k6: valida rate limit y retry-after por escenario
 ├── instalarK6.ts                                    # Instalación automática de k6 multiplataforma
 ├── package.json
 ├── package-lock.json
@@ -275,7 +280,12 @@ El contexto **`WorldData`** expone las siguientes funciones:
     "autorizacion": "",
     "payload": {},
     "schemaRef": "nombreArchivoSchema",
-    "transacciones": 400
+    "transacciones": 400,
+    "rateLimit": {
+      "peticionesPermitidas": 5,
+      "statusRateLimit": 429,
+      "retryAfterSegundos": 10
+    }
   }
 }
 ```
@@ -324,6 +334,32 @@ Los perfiles se calculan dinámicamente a partir del valor `transacciones` del e
 | `http_req_failed` | < 1% |
 | `checks` (general) | > 99% |
 | `checks` "Validar status code" | > 99% |
+
+##### Perfiles de carga — activar / desactivar
+
+Los perfiles se configuran en el array `SPECS` dentro de [scenarioConfig.ts](src/config/performance/scenarioConfig.ts). Por defecto solo `low` está activo; para habilitar más perfiles, descomentar las entradas correspondientes. `CICLO_TOTAL_MIN` se calcula automáticamente a partir del último perfil activo.
+
+#### 4.1. Pruebas de Rate Limit y Retry-After
+
+Valida que el servicio respete el límite de peticiones permitidas y que se recupere correctamente tras el período de retry-after. Reutiliza los mismos archivos JSON de `src/test/data/API/`; solo requiere añadir el campo `rateLimit` a cada escenario.
+
+##### Fases de ejecución por escenario
+
+| Fase | Iteraciones | Acción | Validación |
+|------|-------------|--------|------------|
+| **Dentro del límite** | 0 … N-1 | Envía N peticiones normales | `statusEsperado` + schema (si aplica) |
+| **Sobre el límite** | N | Envía la petición N+1 | `statusRateLimit` (ej. 429) |
+| **Tras retry-after** | N+1 | Espera `retryAfterSegundos`, reintenta | `statusEsperado` — el servicio se recuperó |
+
+##### Thresholds de rate limit
+
+| Métrica | Umbral |
+|---------|--------|
+| `http_req_duration` p(90) | < 2000 ms |
+| `http_req_duration` p(95) | < 3000 ms |
+| `checks{fase:dentro_limite}` | 100% |
+| `checks{fase:sobre_limite}` | 100% |
+| `checks{fase:tras_retry_after}` | 100% |
 
 ---
 
@@ -466,18 +502,44 @@ npm run chrome tags=@TC123 env=qa
 #### Pruebas de Performance (k6)
 
 ```bash
+# Un escenario específico
 npm run perf env=<dev/qa/prod> data_file=<nombre-archivo> scenario=<clave-escenario>
+
+# Todos los escenarios del archivo
+npm run perf env=<dev/qa/prod> data_file=<nombre-archivo>
 ```
 
 **Ejemplo:**
 
 ```bash
 npm run perf env=dev data_file=apiExample scenario=escenario3
+npm run perf env=qa data_file=apiExample
 ```
 
-> `data_file` referencia un archivo dentro de `src/test/data/API/` (sin extensión). `scenario` es la clave del escenario dentro de ese archivo. Si el escenario usa autenticación Azure AD, el runner obtiene el token antes de iniciar k6 y lo inyecta via `AZURE_TOKEN`.
+> `data_file` referencia un archivo dentro de `src/test/data/API/` (sin extensión). `scenario` es la clave del escenario dentro de ese archivo; si se omite, se ejecutan todos los escenarios del archivo de forma secuencial. Si el escenario usa autenticación Azure AD, el runner obtiene el token antes de iniciar k6 y lo inyecta via `AZURE_TOKEN`.
 
 El reporte HTML de k6 se genera en: `reports/K6-report/performance_dashboard_<data_file>_<timestamp>.html`
+
+#### Pruebas de Rate Limit (k6)
+
+```bash
+# Un escenario específico
+npm run ratelimit env=<dev/qa/prod> data_file=<nombre-archivo> scenario=<clave-escenario>
+
+# Todos los escenarios del archivo
+npm run ratelimit env=<dev/qa/prod> data_file=<nombre-archivo>
+```
+
+**Ejemplo:**
+
+```bash
+npm run ratelimit env=dev data_file=apiExample scenario=escenario1
+npm run ratelimit env=qa data_file=apiExample
+```
+
+> Requiere que cada escenario tenga el campo `rateLimit` en el JSON de datos. Los escenarios se ejecutan de forma secuencial; el siguiente comienza tras la duración estimada del anterior (basada en `peticionesPermitidas` y `retryAfterSegundos`).
+
+El reporte HTML se genera en: `reports/K6-report/rateLimit_dashboard_<data_file>_<timestamp>.html`
 
 ---
 
