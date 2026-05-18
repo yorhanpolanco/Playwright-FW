@@ -1,5 +1,5 @@
 import { cargarEscenario, cargarTodosLosEscenarios } from '../../config/performance/loadData.ts';
-import { asRateLimitData, RateLimitData } from '../../config/performance/rateLimitTypes.ts';
+import { asRateLimitData, tryAsRateLimitData, RateLimitData } from '../../config/performance/rateLimitTypes.ts';
 import {
   crearOpcionesRateLimit,
   crearOpcionesMultiplesRateLimit,
@@ -14,24 +14,34 @@ const singleScenario: RateLimitData | null = SCENARIO_KEY
   ? asRateLimitData(cargarEscenario(DATA_FILE, SCENARIO_KEY), SCENARIO_KEY)
   : null;
 
+const omitidos: string[] = [];
+
 const allScenarios: Record<string, RateLimitData> | null = SCENARIO_KEY
   ? null
   : (() => {
       const raw = cargarTodosLosEscenarios(DATA_FILE);
       const result: Record<string, RateLimitData> = {};
       for (const [key, data] of Object.entries(raw)) {
-        result[key] = asRateLimitData(data, key);
+        const rl = tryAsRateLimitData(data);
+        if (rl) result[key] = rl;
+        else omitidos.push(key);
       }
       return result;
     })();
 
-export const options = allScenarios
+export const options = allScenarios !== null
   ? crearOpcionesMultiplesRateLimit(allScenarios)
   : crearOpcionesRateLimit(SCENARIO_KEY as string, singleScenario!);
 
-export default function (): void {
-  let data: RateLimitData;
+// setup() corre exactamente una vez en k6, a diferencia del init context que corre
+// por VU. Es el único lugar seguro para emitir warnings de escenarios omitidos.
+export function setup(): void {
+  for (const key of omitidos) {
+    console.warn(`⚠️  Escenario "${key}" omitido: no contiene rateLimit válido (peticionesPermitidas, statusRateLimit, retryAfterSegundos)`);
+  }
+}
 
+export default function (): void {
   if (allScenarios !== null) {
     const key   = __ENV.CURRENT_SCENARIO;
     const found = allScenarios[key];
@@ -39,10 +49,9 @@ export default function (): void {
       console.error(`❌ CURRENT_SCENARIO inválido o no definido: "${key}"`);
       return;
     }
-    data = found;
-  } else {
-    data = singleScenario!;
+    ejecutarFase(found, __ITER);
+    return;
   }
 
-  ejecutarFase(data, __ITER);
+  ejecutarFase(singleScenario!, __ITER);
 }
