@@ -56,7 +56,7 @@ class ApiSetting {
      * @param metodo - Tipo de metodo a ejecutar GET, POST, PUT, PATCH, DELETE
      * @returns - Response con la data del request
       */
-    async ejecutarMetodo(metodo: string, url: string, endpoint: string, headers?: Header, data?: any): Promise<Object> {
+    async ejecutarMetodo(metodo: string, url: string, endpoint: string, headers?: Header, data?: any): Promise<Record<string, any>> {
 
         metodo = metodo.toLowerCase();
 
