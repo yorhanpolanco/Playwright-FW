@@ -49,7 +49,7 @@ class ApiSetting {
      */
     async formatLargeNumbers(jsonText: string): Promise<string> {
         // Utiliza una expresión regular para encontrar números grandes en la cadena JSON
-        return jsonText.replace(/(?<!")\b\d{16,}\b(?!")/g, '"$&"');
+        return jsonText.replace(/(?<!")\b\d{16,30}\b(?!")/g, '"$&"');
     }
 
     /** Función de orden superior que se utliza para invocar las funciones de los metodos

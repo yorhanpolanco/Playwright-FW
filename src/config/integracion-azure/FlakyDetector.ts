@@ -31,7 +31,7 @@ const INFRASTRUCTURE_PATTERNS = [
 const TIMEOUT_PATTERNS = [
   /TimeoutError/i,
   /page\.waitFor/i,
-  /locator\..*timed out/i,
+  /locator\.[^\n]{0,500}timed out/i,
   /Timeout \d+ms exceeded/i,
 ];
 
@@ -125,7 +125,7 @@ export class FlakyDetector {
       .replace(/\b\d{10,}\b/g, '<ID>')                        // long numeric IDs
       .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, '<GUID>')
       .replace(/https?:\/\/[^\s]+/g, '<URL>')
-      .replace(/\d+ms/g, '<MS>')
+      .replace(/\d{1,10}ms/g, '<MS>')
       .trim();
   }
 

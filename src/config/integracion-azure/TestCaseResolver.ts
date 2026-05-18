@@ -20,7 +20,7 @@ import Logs from '../logConfig';
 // TC ID.  This resolver only handles the test→tcId mapping and iteration idx.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TC_TAG_PATTERN = /^@TC0*(\d+)$/i;
+const TC_TAG_PATTERN = /^@TC(\d{1,10})$/i;
 
 export class TestCaseResolver {
   /** testId → numeric TC ID string (without leading zeros) */
@@ -137,7 +137,7 @@ export class TestCaseResolver {
   /** Parses "@TC012" → "12" (strips leading zeros). Returns '' on no match. */
   private parseTcId(tag: string): string {
     const m = tag.match(TC_TAG_PATTERN);
-    return m ? m[1] : '';
+    return m ? String(parseInt(m[1], 10)) : '';
   }
 }
 
@@ -146,6 +146,6 @@ export class TestCaseResolver {
 export function extractTcIdsFromTags(tags: string[]): string[] {
   return tags
     .filter((t) => TC_TAG_PATTERN.test(t))
-    .map((t) => { const m = t.match(TC_TAG_PATTERN); return m ? m[1] : ''; })
+    .map((t) => { const m = t.match(TC_TAG_PATTERN); return m ? String(parseInt(m[1], 10)) : ''; })
     .filter(Boolean);
 }

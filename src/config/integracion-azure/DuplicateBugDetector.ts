@@ -183,7 +183,7 @@ export class DuplicateBugDetector {
 
   private buildSearchKeyword(fp: ErrorFingerprint): string {
     return fp.normalizedMessage
-      .replace(/<[^>]+>/g, '')
+      .replace(/<[^>]{1,500}>/g, '')
       .split(/\s+/)
       .filter((w) => w.length > 4)
       .slice(0, 4)

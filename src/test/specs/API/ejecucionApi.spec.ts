@@ -5,7 +5,7 @@ import { obtenerCasosDeData } from '../../../config/fixtures/worldData.fixture';
 const DATA_FILE = 'API/apiExample';
 process.env.AZURE_TESTSUITE_ID='31';
 
-const casos =['escenario2']//obtenerCasosDeData(DATA_FILE);
+const casos =obtenerCasosDeData(DATA_FILE);
 
 test.describe('Ejecucion de Api', () => {
   

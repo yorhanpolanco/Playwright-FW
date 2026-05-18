@@ -68,7 +68,7 @@ export class ErrorFingerprintService {
   private normalizeStack(stack: string): string {
     return stack
       .replace(/[A-Z]:\\[^\s:)]+/g, '<PATH>')
-      .replace(/\/[^\s:)]+\.(ts|js|mjs|cjs)/g, '<FILE>')
+      .replace(/\/[^\s:)]{1,500}\.(?:ts|js|mjs|cjs)/g, '<FILE>')
       .replace(/:\d+:\d+/g, '')
       .replace(/node_modules\/[^\s)]+/g, 'node_modules/<MODULE>')
       .trim();
@@ -79,7 +79,7 @@ export class ErrorFingerprintService {
     if (stackMatch) return stackMatch[1];
     const msgMatch = message.match(/^([A-Za-z]+Error|[A-Za-z]+Exception):/);
     if (msgMatch) return msgMatch[1];
-    if (/expect\(.*\)\.to/i.test(message)) return 'AssertionError';
+    if (/expect\(.{0,1000}\)\.to/i.test(message)) return 'AssertionError';
     if (/Timeout/i.test(message))           return 'TimeoutError';
     if (/ECONNREFUSED|ENOTFOUND/i.test(message)) return 'NetworkError';
     return 'UnknownError';
@@ -87,7 +87,7 @@ export class ErrorFingerprintService {
 
   private classifyError(message: string, stack: string): ErrorCategory {
     const combined = `${message}\n${stack}`;
-    if (/expect\(.*\)\.to|AssertionError/i.test(combined))        return 'assertion';
+    if (/expect\(.{0,1000}\)\.to|AssertionError/i.test(combined)) return 'assertion';
     if (/TimeoutError|timed out|exceeded/i.test(combined))         return 'timeout';
     if (/ECONNREFUSED|ENOTFOUND|net::ERR_|socket/i.test(combined)) return 'network';
     if (/locator|waiting for|no element|not found/i.test(combined)) return 'element-not-found';

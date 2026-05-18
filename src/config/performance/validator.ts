@@ -13,20 +13,6 @@ type JsonSchema = {
   format?: string;
 };
 
-// Patrones de ajv-formats (fast mode) — mirror exacto de los usados por AJV
-const FORMAT_VALIDATORS: Record<string, RegExp> = {
-  'date':          /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/,
-  'time':          /^(?:[0-2]\d:[0-5]\d:[0-5]\d|23:59:60)(?:\.\d+)?(?:z|[+-]\d\d(?::?\d\d)?)$/i,
-  'date-time':     /^\d{4}-[0-1]\d-[0-3]\dT(?:[0-2]\d:[0-5]\d:[0-5]\d|23:59:60)(?:\.\d+)?(?:z|[+-]\d\d(?::?\d\d)?)$/i,
-  'email':         /^[a-z0-9.!#$%&'*+/=?^_`{}|~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/i,
-  'uuid':          /^(?:urn:uuid:)?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i,
-  'hostname':      /^(?=.{1,253}\.?$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[-0-9a-z]{0,61}[0-9a-z])?)*\.?$/i,
-  'ipv4':          /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/,
-  'ipv6':          /^(?:(?:[0-9a-f]{1,4}:){7}[0-9a-f]{1,4}|(?:[0-9a-f]{1,4}:){1,7}:|(?:[0-9a-f]{1,4}:){1,6}:[0-9a-f]{1,4}|(?:[0-9a-f]{1,4}:){1,5}(?::[0-9a-f]{1,4}){1,2}|(?:[0-9a-f]{1,4}:){1,4}(?::[0-9a-f]{1,4}){1,3}|(?:[0-9a-f]{1,4}:){1,3}(?::[0-9a-f]{1,4}){1,4}|(?:[0-9a-f]{1,4}:){1,2}(?::[0-9a-f]{1,4}){1,5}|[0-9a-f]{1,4}:(?::[0-9a-f]{1,4}){1,6}|:(?::[0-9a-f]{1,4}){1,7}|::(?:[fF]{4}(?::0{1,4})?:)?(?:25[0-5]|(?:2[0-4]|1?\d)?\d)(?:\.(?:25[0-5]|(?:2[0-4]|1?\d)?\d)){3}|(?:[0-9a-f]{1,4}:){1,4}:(?:25[0-5]|(?:2[0-4]|1?\d)?\d)(?:\.(?:25[0-5]|(?:2[0-4]|1?\d)?\d)){3})$/i,
-  'uri':           /^[a-z][a-z0-9+\-.]*:(?:\/\/(?:[^\s/?#]*)?)?[^\s?#]*(?:\?[^\s#]*)?(?:#[^\s]*)?$/i,
-  'uri-reference': /^(?:[a-z][a-z0-9+\-.]*:(?:\/\/(?:[^\s/?#]*)?)?)?[^\s?#]*(?:\?[^\s#]*)?(?:#[^\s]*)?$/i,
-};
-
 // Misma lógica que AJV: integer si value % 1 === 0, number para cualquier número
 function getJsonType(value: any): string {
   if (value === null) return 'null';
@@ -52,14 +38,6 @@ function validarValor(value: any, schema: JsonSchema, ruta: string): string[] {
       const actual = getJsonType(value);
       errores.push(`"${label}": tipo esperado ${JSON.stringify(schema.type)}, recibido "${actual}"`);
       return errores;
-    }
-  }
-
-  // format — solo aplica a strings, igual que AJV
-  if (schema.format !== undefined && typeof value === 'string') {
-    const regex = FORMAT_VALIDATORS[schema.format];
-    if (regex && !regex.test(value)) {
-      errores.push(`"${label}": formato "${schema.format}" inválido para "${value}"`);
     }
   }
 

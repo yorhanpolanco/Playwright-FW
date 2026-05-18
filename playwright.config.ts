@@ -42,7 +42,7 @@ export default defineConfig({
   projects: [
     {
       name: 'api',
-      testMatch: /.*API.*\.spec\.ts/,
+      testMatch: /API.*\.spec\.ts/,
       use: {
         trace:      'off',
         video:      'off',
