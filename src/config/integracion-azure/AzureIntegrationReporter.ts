@@ -162,58 +162,64 @@ export default class AzureIntegrationReporter implements Reporter {
       return;
     }
 
-    // Wait for Test Run to be ready
-    await this.initPromise;
-
-    if (!this.resultSvc.isReady()) {
-      await Logs.agregarLineaAlLog(
-        `[Azure] Test Run no disponible — resultado para TC${tcId ?? '?'} no publicado`,
-      );
-      return;
-    }
-
-    if (!tcId) {
-      await Logs.agregarLineaAlLog(
-        `[Azure] Sin TC ID para "${test.title}" — resultado no publicado`,
-      );
-      return;
-    }
-
-    const allAttempts = this.tracker.getAllAttempts(test.id);
-    const finalAtt    = this.tracker.getFinalAttempt(test.id);
-    if (!finalAtt) return;
-
-    const steps = finalAtt.steps;
-
-    // Stamp artifact names with execution index and/or retry index.
-    //
-    // retryIndex uses Playwright's result.retry directly (0 = first attempt, 1 = first retry…).
-    // The first attempt (retry=0) never gets a retry suffix so its evidence is always
-    // distinguishable from actual retry attempts regardless of how many retries follow.
-    //
-    // Full naming matrix (centralised in EvidenceCollector.stampNames):
-    //   single-iteration, no retries         → {name}               dataJson.json
-    //   single-iteration, 1st attempt+retries → {name}              dataJson.json
-    //   single-iteration, retry N            → {name}_{N}           dataJson_1.json
-    //   multi-iteration,  no retries         → {name}_{exec}        dataJson_2.json
-    //   multi-iteration,  1st attempt+retries → {name}_{exec}       dataJson_2.json
-    //   multi-iteration,  retry N            → {name}_{exec}_{N}    dataJson_2_1.json
-    //
-    // Bug evidences keep original names: a bug represents one error fingerprint
-    // and does not need iteration/retry disambiguation.
-    const allEvidences   = allAttempts.flatMap((a) => {
-      const retryIndex = a.retry > 0 ? a.retry : undefined;   // undefined for the first attempt
-      return EvidenceCollector.stampNames(a.evidences, executionIndex, retryIndex);
-    });
-    const finalEvidences = finalAtt.evidences;
-
-    if (executionIndex !== undefined) {
-      await Logs.agregarLineaAlLogHeader(
-        `[Azure] Procesando iteración ${executionIndex} para TC${tcId} — "${test.title}"`,
-      );
-    }
-
+    // Publication is created and pushed to pendingPublications BEFORE any await.
+    // This prevents a race condition with onEnd: Playwright does not await onTestEnd,
+    // so onEnd can run while onTestEnd is suspended at await this.initPromise. If the
+    // push happened after that await (as it did before), onEnd would see an empty
+    // pendingPublications array, call finalize() prematurely, and the process would
+    // exit before attachments and logs inside publishPass had a chance to complete.
     const publication = this.safePublish(async () => {
+      // Wait for Test Run to be ready — inside safePublish so the promise is already
+      // tracked by pendingPublications before this suspension point.
+      await this.initPromise;
+
+      if (!this.resultSvc.isReady()) {
+        await Logs.agregarLineaAlLog(
+          `[Azure] Test Run no disponible — resultado para TC${tcId ?? '?'} no publicado`,
+        );
+        return;
+      }
+
+      if (!tcId) {
+        await Logs.agregarLineaAlLog(
+          `[Azure] Sin TC ID para "${test.title}" — resultado no publicado`,
+        );
+        return;
+      }
+
+      const allAttempts = this.tracker.getAllAttempts(test.id);
+      const finalAtt    = this.tracker.getFinalAttempt(test.id);
+      if (!finalAtt) return;
+
+      const steps = finalAtt.steps;
+
+      // Stamp artifact names with execution index and/or retry index.
+      //
+      // retryIndex uses Playwright's result.retry directly (0 = first attempt, 1 = first retry…).
+      // The first attempt (retry=0) never gets a retry suffix so its evidence is always
+      // distinguishable from actual retry attempts regardless of how many retries follow.
+      //
+      // Full naming matrix (centralised in EvidenceCollector.stampNames):
+      //   single-iteration, no retries         → {name}               dataJson.json
+      //   single-iteration, 1st attempt+retries → {name}              dataJson.json
+      //   single-iteration, retry N            → {name}_{N}           dataJson_1.json
+      //   multi-iteration,  no retries         → {name}_{exec}        dataJson_2.json
+      //   multi-iteration,  1st attempt+retries → {name}_{exec}       dataJson_2.json
+      //   multi-iteration,  retry N            → {name}_{exec}_{N}    dataJson_2_1.json
+      //
+      // Bug evidences keep original names: a bug represents one error fingerprint
+      // and does not need iteration/retry disambiguation.
+      const allEvidences   = allAttempts.flatMap((a) => {
+        const retryIndex = a.retry > 0 ? a.retry : undefined;   // undefined for the first attempt
+        return EvidenceCollector.stampNames(a.evidences, executionIndex, retryIndex);
+      });
+      const finalEvidences = finalAtt.evidences;
+
+      if (executionIndex !== undefined) {
+        await Logs.agregarLineaAlLogHeader(
+          `[Azure] Procesando iteración ${executionIndex} para TC${tcId} — "${test.title}"`,
+        );
+      }
 
       if (result.status === 'passed') {
         const priorFails = allAttempts.filter((a) => a.status !== 'passed');
@@ -272,7 +278,7 @@ export default class AzureIntegrationReporter implements Reporter {
           bugEvidences: finalEvidences,  // final retry only → Bug Work Item
         });
       }
-    });
+    }); // end safePublish
     this.pendingPublications.push(publication);
     await publication;
   }

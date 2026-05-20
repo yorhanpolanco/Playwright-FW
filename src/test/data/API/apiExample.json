@@ -8,7 +8,7 @@
             "accept": "application/json",
             "Content-Type": "application/json"
         },
-        "autorizacion": "",
+        "autorizacion": "%AZURE_API_SCOPE%",
         "payload": "",
         "schemaRef": "apiExampleSchemas",
         "rateLimit": {

@@ -1,14 +1,19 @@
 import type { AzureConfiguration } from './types/azure.types';
+import { DefaultAzureCredential } from '@azure/identity';
+import Logs from '../logConfig';
+
+const DEFAULT_AZURE_DEVOPS_SCOPE = 'https://app.vssps.visualstudio.com/.default';
 
 const REQUIRED_VARS = [
   'AZURE_DEVOPS_ORG',
   'AZURE_DEVOPS_PROJECT',
-  'AZURE_DEVOPS_PAT',
   'AZURE_TESTPLAN_ID',
   'AZURE_TESTSUITE_ID',
 ] as const;
 
 let _config: AzureConfiguration | null = null;
+const _credential = new DefaultAzureCredential();
+let _lastTokenExpiry: number | null = null;
 
 export function loadAzureConfig(): AzureConfiguration {
   if (_config) return _config;
@@ -21,10 +26,30 @@ export function loadAzureConfig(): AzureConfiguration {
     );
   }
 
+  const scope = process.env.AZURE_DEVOPS_SCOPE ?? DEFAULT_AZURE_DEVOPS_SCOPE;
+
   _config = {
     org: process.env.AZURE_DEVOPS_ORG!,
     project: process.env.AZURE_DEVOPS_PROJECT!,
-    pat: process.env.AZURE_DEVOPS_PAT!,
+    getToken: async () => {
+      try {
+        const response = await _credential.getToken(scope);
+        if (!response) throw new Error('La respuesta del token fue nula');
+        if (response.expiresOnTimestamp !== _lastTokenExpiry) {
+          _lastTokenExpiry = response.expiresOnTimestamp;
+          void Logs.agregarLineaAlLog(`[Azure] Nuevo token de Entra ID obtenido para Azure DevOps (scope: ${scope}, expira: ${new Date(response.expiresOnTimestamp).toISOString()}).`);
+        }
+        return response.token;
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : String(error);
+        throw new Error(
+          `[Azure] No se pudo obtener token de Entra ID para Azure DevOps (scope: ${scope}).\n` +
+          `  Ejecución local    : ejecute "az login" con la cuenta que tiene acceso al proyecto.\n` +
+          `  Pipeline           : verifique que el agente tiene la Managed Identity o las variables AZURE_CLIENT_ID / AZURE_TENANT_ID / AZURE_CLIENT_SECRET configuradas.\n` +
+          `  Detalle            : ${detail}`,
+        );
+      }
+    },
     testPlanId: process.env.AZURE_TESTPLAN_ID!,
     testSuiteId: process.env.AZURE_TESTSUITE_ID!,
     apiVersion: process.env.AZURE_API_VERSION ?? '7.1',

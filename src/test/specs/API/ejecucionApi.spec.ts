@@ -3,14 +3,14 @@ import { EjecucionAPIFlow } from '../../flows/API/ejecucionAPI.flow';
 import { obtenerCasosDeData } from '../../../config/fixtures/worldData.fixture';
 
 const DATA_FILE = 'API/apiExample';
-process.env.AZURE_TESTSUITE_ID='31';
+process.env.AZURE_TESTSUITE_ID='70218';
 
 const casos =obtenerCasosDeData(DATA_FILE);
 
 test.describe('Ejecucion de Api', () => {
   
   for (const caso of casos) {
-    test(`Ejecutar api - "${caso}"`, { tag: ['@smoke', '@regression', '@smokeApi','@TC12'] }, async ({ apiService, worldData }) => {
+    test(`Ejecutar api - "${caso}"`, { tag: ['@smoke', '@regression', '@smokeApi','@TC70219','@TC70220','@TC70221'] }, async ({ apiService, worldData }) => {
       const flow = new EjecucionAPIFlow(apiService, worldData);
 
 
@@ -22,8 +22,7 @@ test.describe('Ejecucion de Api', () => {
         await flow.ejecutarRequest();
       });
 
-      await test.step('Mostrar response del api que se ejecuto', async () => {
-        console.log(worldData.obtenerDataApiResponse());
+      await test.step('Validar response del api que se ejecuto', async () => {
         expect(worldData.obtenerDataApiResponse('status')).toEqual(worldData.obtenerDataJson('statusEsperado'));
         flow.validarEstructuraResponse(caso);
 

@@ -425,11 +425,14 @@ Activar la integración en el archivo `.env` del ambiente:
 AZURE_DEVOPS_INTEGRATION_ENABLED=true
 AZURE_DEVOPS_ORG=mi-organizacion
 AZURE_DEVOPS_PROJECT=mi-proyecto
-AZURE_DEVOPS_PAT=<personal-access-token>
 AZURE_TESTPLAN_ID=123
 AZURE_TESTSUITE_ID=456
 ENABLE_BUG_CREATION=true
 ```
+
+La autenticación usa **Microsoft Entra ID** via `DefaultAzureCredential` (`@azure/identity`). No se requiere un PAT. En local, autenticarse previamente con `az login --tenant <tenant-id>`; en pipelines, configurar la Managed Identity del agente o las variables `AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_CLIENT_SECRET`.
+
+El scope por defecto es `https://app.vssps.visualstudio.com/.default`. Si la organización requiere uno distinto, sobreescribirlo con `AZURE_DEVOPS_SCOPE`.
 
 #### Flujo de publicación
 
@@ -449,11 +452,11 @@ Test Run finaliza
               └── Crea work item (Bug) si no existe
 ```
 
-#### Requisitos del PAT de Azure DevOps
+#### Permisos requeridos en Azure DevOps
 
-El Personal Access Token debe tener los siguientes permisos:
+La identidad autenticada (usuario local o Managed Identity del pipeline) debe tener los siguientes permisos en el proyecto:
 - **Test Management**: Read & Write
-- **Work Items**: Read & Write (si se habilita creación de bugs)
+- **Work Items**: Read & Write (si se habilita `ENABLE_BUG_CREATION=true`)
 
 ---
 
@@ -586,14 +589,16 @@ Cada archivo `.env.<ambiente>` debe contener las siguientes variables. Las marca
 | `AZURE_DEVOPS_INTEGRATION_ENABLED` | Habilita la integración (`true`/`false`) | Para integración |
 | `AZURE_DEVOPS_ORG`* | Nombre de la organización en Azure DevOps | Sí |
 | `AZURE_DEVOPS_PROJECT`* | Nombre del proyecto | Sí |
-| `AZURE_DEVOPS_PAT`* | Personal Access Token | Sí |
 | `AZURE_TESTPLAN_ID`* | ID del Test Plan en Azure DevOps | Sí |
 | `AZURE_TESTSUITE_ID`* | ID del Test Suite | Sí |
+| `AZURE_DEVOPS_SCOPE` | Scope de Entra ID para la API de Azure DevOps | `https://app.vssps.visualstudio.com/.default` |
 | `AZURE_API_VERSION` | Versión de la API de Azure DevOps | `7.1` |
 | `MAX_RETRIES` | Reintentos para llamadas HTTP a Azure DevOps | `3` |
 | `ENABLE_BUG_CREATION` | Crea bugs automáticamente por fallos | `false` |
 | `ENABLE_TRACE_ATTACHMENTS` | Adjunta trazas de Playwright a Azure DevOps | `true` |
 | `AZURE_TLS_REJECT_UNAUTHORIZED` | Validación TLS en peticiones a Azure DevOps | `true` |
+
+> **Autenticación**: la integración usa **Microsoft Entra ID** (`DefaultAzureCredential`), no PAT. En local ejecutar `az login --tenant <tenant-id>` antes de las pruebas. En pipelines, asignar la Managed Identity o configurar `AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_CLIENT_SECRET` como variables del agente.
 
 ---
 
@@ -671,20 +676,21 @@ k6 version
 #### La integración con Azure DevOps no publica resultados
 
 1. Verificar que `AZURE_DEVOPS_INTEGRATION_ENABLED=true` en el `.env` activo.
-2. Verificar que el PAT no haya expirado y tenga permisos de **Test Management: Read & Write**.
-3. Verificar que los IDs de `AZURE_TESTPLAN_ID` y `AZURE_TESTSUITE_ID` existan en el proyecto.
-4. Verificar que los tests tengan el tag `@TC###` con IDs válidos.
-5. Revisar los logs de ejecución en `logs/` para mensajes de error del reporter.
+2. Verificar que los IDs de `AZURE_TESTPLAN_ID` y `AZURE_TESTSUITE_ID` existan en el proyecto.
+3. Verificar que los tests tengan el tag `@TC###` con IDs válidos.
+4. Revisar los logs de ejecución en `logs/` para mensajes `[Azure]` — indican el estado de cada operación.
 
-#### La autenticación Azure AD falla en local
+#### La autenticación Entra ID falla en local
 
 ```bash
-# Autenticarse con Azure CLI antes de ejecutar
-az login
+# Autenticarse con el tenant corporativo donde está el proyecto Azure DevOps
+az login --tenant <tenant-id>
 
-# Verificar la cuenta activa
+# Verificar que la cuenta activa tiene acceso al proyecto
 az account show
 ```
+
+En pipelines, verificar que la Managed Identity del agente tenga acceso al proyecto de Azure DevOps, o que las variables `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` y `AZURE_CLIENT_SECRET` estén configuradas en el grupo de variables del pipeline.
 
 #### Los placeholders `%VARIABLE%` no se resuelven
 

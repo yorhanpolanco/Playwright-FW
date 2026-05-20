@@ -2,12 +2,14 @@ import { test, expect } from '../../../config/fixtures/index';
 import ApiService from '../../../config/API/apiServices';
 import  {WorldData}  from '../../../config/fixtures/worldData.fixture';
 import { SchemaValidator } from '../../../config/API/apiSchemaValidator';
+import Logs from '../../../config/logConfig';
 
 export class EjecucionAPIFlow {
     constructor(private apiService: ApiService, private worldData: WorldData) {}
 
     async ejecutarRequest(): Promise<void> {
         const result = await this.apiService.ejecutarRequest(this.worldData.dataJson.metodo, this.worldData.dataJson.urlBase, this.worldData.dataJson.endpoint, this.worldData.dataJson.header, this.worldData.dataJson.autorizacion, this.worldData.dataJson.payload);
+        await Logs.agregarLineaAlLog(`Response recibido: ${JSON.stringify(result)}`);
         this.worldData.dataApiResponse = result;
     }
 

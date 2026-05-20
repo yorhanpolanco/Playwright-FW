@@ -7,7 +7,7 @@
 export interface AzureConfiguration {
   org: string;
   project: string;
-  pat: string;
+  getToken: () => Promise<string>;
   testPlanId: string;
   testSuiteId: string;
   apiVersion: string;

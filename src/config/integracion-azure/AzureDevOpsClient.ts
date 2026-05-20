@@ -45,7 +45,6 @@ interface HttpOptions {
 
 export class AzureDevOpsClient {
   private readonly baseUrl: string;
-  private readonly authHeader: string;
   private readonly apiVersion: string;
   private readonly clientMaxRetries: number;
   // Persistent agent reuses TCP connections across sequential uploads, avoiding
@@ -54,7 +53,6 @@ export class AzureDevOpsClient {
 
   constructor(private readonly cfg: AzureConfiguration) {
     this.baseUrl     = `https://dev.azure.com/${cfg.org}/${encodeURIComponent(cfg.project)}`;
-    this.authHeader  = `Basic ${Buffer.from(`:${cfg.pat}`).toString('base64')}`;
     this.apiVersion  = cfg.apiVersion;
     this.clientMaxRetries = cfg.maxRetries;
     this.agent = new https.Agent({
@@ -243,8 +241,10 @@ export class AzureDevOpsClient {
     const url    = this.buildUrl(opts);
     const parsed = new URL(url);
 
+    const token = await this.cfg.getToken();
     const headers: Record<string, string> = {
-      Authorization: this.authHeader,
+      Authorization: `Bearer ${token}`,
+      Accept:        'application/json',
     };
 
     let bodyBuffer: Buffer | undefined;
