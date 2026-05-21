@@ -3,7 +3,6 @@ import { EjecucionAPIFlow } from '../../flows/API/ejecucionAPI.flow';
 import { obtenerCasosDeData } from '../../../config/fixtures/worldData.fixture';
 
 const DATA_FILE = 'API/apiExample';
-process.env.AZURE_TESTSUITE_ID='70218';
 
 const casos =obtenerCasosDeData(DATA_FILE);
 
