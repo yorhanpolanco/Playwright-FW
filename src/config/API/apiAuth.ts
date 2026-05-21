@@ -1,7 +1,5 @@
 import Logs from '../logConfig';
-import { DefaultAzureCredential } from "@azure/identity";
-
-let _credential: DefaultAzureCredential | null = null;
+import { azureCredential } from '../azureCredential';
 
 export interface ApiAuthConfig {
     [key: string]: {
@@ -31,18 +29,11 @@ export default function getAuthDetails(auth: string) {
     }
 }
 
-function getCredential(): DefaultAzureCredential {
-  if (!_credential) {
-    _credential = new DefaultAzureCredential();
-  }
-  return _credential;
-}
-
 export async function getAccessToken(scope: string): Promise<object> {
   if (!scope) return {};
 
   try {
-    const tokenResponse = await getCredential().getToken(scope);
+    const tokenResponse = await azureCredential.getToken(scope);
 
     if (!tokenResponse) {
       throw new Error(`${Logs.workerTag} La respuesta del token fue nula`);

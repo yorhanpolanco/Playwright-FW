@@ -1,6 +1,6 @@
 import type { AzureConfiguration } from './types/azure.types';
-import { DefaultAzureCredential } from '@azure/identity';
 import Logs from '../logConfig';
+import { azureCredential } from '../azureCredential';
 
 const DEFAULT_AZURE_DEVOPS_SCOPE = 'https://app.vssps.visualstudio.com/.default';
 
@@ -12,7 +12,6 @@ const REQUIRED_VARS = [
 ] as const;
 
 let _config: AzureConfiguration | null = null;
-const _credential = new DefaultAzureCredential();
 let _lastTokenExpiry: number | null = null;
 
 export function loadAzureConfig(): AzureConfiguration {
@@ -33,7 +32,7 @@ export function loadAzureConfig(): AzureConfiguration {
     project: process.env.AZURE_DEVOPS_PROJECT!,
     getToken: async () => {
       try {
-        const response = await _credential.getToken(scope);
+        const response = await azureCredential.getToken(scope);
         if (!response) throw new Error('La respuesta del token fue nula');
         if (response.expiresOnTimestamp !== _lastTokenExpiry) {
           _lastTokenExpiry = response.expiresOnTimestamp;

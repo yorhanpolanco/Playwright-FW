@@ -28,6 +28,7 @@ parameters:
       - multipleNavegador
       - api
       - perf
+      - ratelimit
 
   - name: folder
     displayName: 'Seleccionar folder a ejecutar'
