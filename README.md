@@ -14,7 +14,7 @@ Framework enterprise para automatización de pruebas funcionales (UI y API), de 
 - Sistema de **placeholders** `%NOMBRE_VARIABLE%` resueltos automáticamente desde `.env` tanto en Playwright como en k6.
 - Generación automática de casos de prueba a partir de archivos JSON de datos (un test por escenario).
 - **Validación de schemas** de respuestas de API con AJV + `ajv-formats` (Playwright) y validador equivalente para k6.
-- **Autenticación de API** dual: credenciales estáticas (`apiAuth.ts`) y Azure Active Directory via `DefaultAzureCredential`.
+- **Autenticación de API** dual: credenciales estáticas (`apiAuth.ts`) y Azure Active Directory via cadena `DefaultAzureCredential → InteractiveBrowserCredential` con cache de tokens automático.
 - **Integración nativa con Azure DevOps**: publicación automática de resultados, adjuntos de evidencia, detección de tests flaky y creación de bugs por fallos.
 - **Pruebas de rendimiento** con k6 reutilizando los mismos datos y schemas de las pruebas de API.
 - Reportes HTML interactivos, JUnit XML y dashboard k6, con logs nombrados dinámicamente por ejecución.
@@ -292,7 +292,10 @@ El contexto **`WorldData`** expone las siguientes funciones:
 
 > **Campo `autorizacion`:**
 > - Nombre de clave definida en `apiAuth.ts` (ej: `"bearerToken"`, `"apiKeyDev"`) → credenciales estáticas.
-> - URL de scope de Azure AD (ej: `"https://..."`) → token via `DefaultAzureCredential` (identidad administrada en pipelines, `az login` en local).
+> - URI de scope de Azure AD (ej: `"https://..."` o `"api://..."`) → token Bearer via `azureCredential`. La estrategia de obtención varía por entorno:
+>   - **Local**: intenta `DefaultAzureCredential` primero (sesión `az login` o VS Code); si falla, abre el navegador via `InteractiveBrowserCredential`.
+>   - **CI**: usa exclusivamente `DefaultAzureCredential` (Managed Identity o Service Principal). Si falla, lanza error.
+>   - El SDK cachea el token en memoria y lo renueva automáticamente cuando expira, sin generar requests adicionales.
 
 ##### Sistema de placeholders
 
@@ -571,7 +574,8 @@ Cada archivo `.env.<ambiente>` debe contener las siguientes variables. Las marca
 | `API_PET_BASE_URL` | URL base de la API (ejemplo: PetStore) |
 | `API_QA_BEARER_TOKEN` | Token Bearer estático para autenticación |
 | `API_Key_DEV` | API Key para ambiente de desarrollo |
-| `AZURE_API_SCOPE` | Scope de Azure AD para obtener token OAuth2 |
+| `AZURE_API_SCOPE` | Scope de Azure AD para obtener token OAuth2 (ej: `https://.../.default` o `api://.../.default`) |
+| `AZURE_TENANT_ID` | Tenant ID de Microsoft Entra ID. Si se omite, se usa el endpoint `common` (el usuario elige la cuenta en el browser) |
 
 #### Base de Datos (Oracle)
 
@@ -597,6 +601,7 @@ Cada archivo `.env.<ambiente>` debe contener las siguientes variables. Las marca
 | `ENABLE_BUG_CREATION` | Crea bugs automáticamente por fallos | `false` |
 | `ENABLE_TRACE_ATTACHMENTS` | Adjunta trazas de Playwright a Azure DevOps | `true` |
 | `AZURE_TLS_REJECT_UNAUTHORIZED` | Validación TLS en peticiones a Azure DevOps | `true` |
+| `AZURE_TENANT_ID` | Tenant ID de Microsoft Entra ID para la integración con Azure DevOps | — |
 
 > **Autenticación**: la integración usa **Microsoft Entra ID** (`DefaultAzureCredential`), no PAT. En local ejecutar `az login --tenant <tenant-id>` antes de las pruebas. En pipelines, asignar la Managed Identity o configurar `AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_CLIENT_SECRET` como variables del agente.
 
@@ -682,13 +687,28 @@ k6 version
 
 #### La autenticación Entra ID falla en local
 
+El framework aplica la siguiente cadena de autenticación en entornos locales (non-CI):
+
+1. **`DefaultAzureCredential`** — intenta en orden: variables de entorno, sesión de VS Code (via plugin), Azure CLI, Azure PowerShell.
+2. **`InteractiveBrowserCredential`** — si todo lo anterior falla, abre el navegador para autenticación interactiva.
+
+La forma más estable para entornos locales sin browser es autenticarse con Azure CLI una sola vez:
+
 ```bash
-# Autenticarse con el tenant corporativo donde está el proyecto Azure DevOps
+# Autenticarse con el tenant corporativo
 az login --tenant <tenant-id>
 
-# Verificar que la cuenta activa tiene acceso al proyecto
+# Verificar que la cuenta activa tiene acceso
 az account show
 ```
+
+Si `AZURE_TENANT_ID` está vacío en el `.env`, el browser abre al endpoint `common` de Microsoft (el usuario elige la cuenta). Para evitar esto, configurar el tenant explícitamente:
+
+```env
+AZURE_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+> **Nota sobre cache de tokens:** el SDK reutiliza el token en memoria durante toda la ejecución y lo renueva automáticamente 5 minutos antes de que expire. No se generan requests adicionales a Azure AD mientras el token sea válido.
 
 En pipelines, verificar que la Managed Identity del agente tenga acceso al proyecto de Azure DevOps, o que las variables `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` y `AZURE_CLIENT_SECRET` estén configuradas en el grupo de variables del pipeline.
 
