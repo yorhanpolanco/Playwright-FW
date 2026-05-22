@@ -34,13 +34,8 @@ export async function getAccessToken(scope: string): Promise<object> {
 
   try {
     const tokenResponse = await azureCredential.getToken(scope);
-
-    if (!tokenResponse) {
-      throw new Error(`${Logs.workerTag} La respuesta del token fue nula`);
-    }else{
-      Logs.agregarLineaAlLog(`Token obtenido exitosamente para el scope "${scope}".`);
-    }
-
+    if (!tokenResponse) throw new Error(`${Logs.workerTag} La respuesta del token fue nula`);
+    Logs.agregarLineaAlLog(`Token obtenido exitosamente para el scope "${scope}".`);
     return { Authorization: `Bearer ${tokenResponse.token}` };
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
