@@ -1,8 +1,15 @@
 import { DefaultAzureCredential, InteractiveBrowserCredential, useIdentityPlugin } from '@azure/identity';
 import type { TokenCredential, AccessToken, GetTokenOptions } from '@azure/identity';
-import { vsCodePlugin } from '@azure/identity-vscode';
 
-useIdentityPlugin(vsCodePlugin);
+if (!process.env.CI) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { vsCodePlugin } = require('@azure/identity-vscode');
+    useIdentityPlugin(vsCodePlugin);
+  } catch {
+    // VS Code plugin no disponible, continúa sin él
+  }
+}
 
 const tenantId = process.env.AZURE_TENANT_ID || undefined;
 
