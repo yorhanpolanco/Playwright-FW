@@ -18,9 +18,7 @@ parameters:
   - name: browser
     displayName: 'Seleccionar browser a ejecutar'
     type: string
-    default: ' '
     values:
-      - ' '
       - chrome
       - firefox
       - safari
@@ -62,9 +60,7 @@ parameters:
   - name: env
     displayName: 'Seleccionar ambiente de prueba'
     type: string
-    default: ' '
     values:
-      - ' '
       - dev
       - qa
       - prod
@@ -105,10 +101,10 @@ stages:
 
     variables:
     - ${{ if eq(parameters.env, ' ') }}:
-      - group: vg_qa_framework_dev
+      - group: vg_qa_automation_exce_dev
     - ${{ else }}:
-      - group: ${{ format('vg_qa_framework_{0}', parameters.env) }}
-    - group: vg-qa-framework-pipelines-conf
+      - group: ${{ format('vg_qa_automation_exce_{0}', parameters.env) }}
+    - group: vg_qa_automation_framework_conf
     - ${{ if ne(parameters.browser, ' ') }}:
       - name: BROWSER
         value: ${{ parameters.browser }}
@@ -150,7 +146,7 @@ stages:
         displayName: 'Configurar Node.js'
 
       - script: |
-          npm ci
+          npm ci --ignore-scripts
         displayName: 'Instalar dependencias de CI'
 
       - script: |
