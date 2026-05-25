@@ -11,10 +11,10 @@ import Logs from '../logConfig';
 //   tag: ['@TC12', '@TC14', '@TC075'] with 3 tests in the loop
 //   → test[0] → TC12,  test[1] → TC14,  test[2] → TC075
 //
-// Modulo wrapping (more iterations than TC tags):
+// Last-tag-absorbs (more iterations than TC tags):
 //   tag: ['@TC12', '@TC14']  with 3 tests in the loop
-//   → test[0] → TC12,  test[1] → TC14,  test[2] → TC12  (wraps + warns)
-//   TC12 has 2 iterations, TC14 has 1 iteration.
+//   → test[0] → TC12,  test[1] → TC14,  test[2] → TC14  (last tag absorbs)
+//   TC12 has 1 iteration, TC14 has 2 iterations.
 //
 // Fail-wins contract: the caller is responsible for aggregating outcomes per
 // TC ID.  This resolver only handles the test→tcId mapping and iteration idx.
@@ -85,7 +85,7 @@ export class TestCaseResolver {
 
   /**
    * Groups sibling tests by their canonical TC tag fingerprint, then assigns
-   * TC IDs positionally within each group with modulo wrapping.
+   * TC IDs positionally within each group using last-tag-absorbs semantics.
    */
   private assignTcIds(tests: TestCase[]): void {
     const groups = new Map<string, TestCase[]>();
@@ -104,13 +104,14 @@ export class TestCaseResolver {
       if (group.length > tcTags.length) {
         void Logs.agregarLineaAlLogHeader(
           `[Azure] Aviso: ${group.length} iteraciones para ${tcTags.length} TC tag(s) ` +
-          `(${tcTags.join(', ')}) — se aplicará módulo. ` +
+          `(${tcTags.join(', ')}) — el último tag absorbe las iteraciones adicionales. ` +
           `Cada TC con múltiples iteraciones usará regla fail-wins.`,
         );
       }
 
       group.forEach((test, groupIdx) => {
-        const tag  = tcTags[groupIdx % tcTags.length];
+        const tagIndex = Math.min(groupIdx, tcTags.length - 1);
+        const tag      = tcTags[tagIndex];
         const tcId = this.parseTcId(tag);
         if (!tcId) return;
 
