@@ -1,18 +1,18 @@
-import { 
-  DefaultAzureCredential, 
-  InteractiveBrowserCredential, 
-  useIdentityPlugin, 
-  AzurePipelinesCredential 
+import {
+  DefaultAzureCredential,
+  InteractiveBrowserCredential,
+  useIdentityPlugin,
+  AzurePipelinesCredential
 } from '@azure/identity';
 import type { TokenCredential, AccessToken, GetTokenOptions } from '@azure/identity';
 import Logs from '../config/logConfig';
 
-if (!process.env.CI) {
+if (!process.env.CI && process.env.AZURE_RESOURCE_AUTENTICATION === 'true') {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { vsCodePlugin } = require('@azure/identity-vscode');
     useIdentityPlugin(vsCodePlugin);
-  void Logs.agregarLineaAlLog(`[Azure] Obteniendo credenciales desde VSC Azure Resource.`);
+    void Logs.agregarLineaAlLog(`[Azure] Intentando obtener credenciales desde VSC Azure Resource.`);
   } catch {
     // VS Code plugin no disponible
   }
@@ -26,7 +26,7 @@ const getTenantId = () => process.env.AZURE_TENANT_ID;
 
 export const azureCredential: TokenCredential = {
   async getToken(scopes: string | string[], options?: GetTokenOptions): Promise<AccessToken> {
-    
+
     // ==========================================
     // FLUJO CI: Azure Pipelines
     // ==========================================
@@ -42,7 +42,7 @@ export const azureCredential: TokenCredential = {
           throw new Error(`${Logs.FgRed}[Auth CI] Faltan variables de entorno obligatorias para AzurePipelinesCredential.${Logs.Reset}`);
         }
 
-          void Logs.agregarLineaAlLog(`[Azure] Obteniendo credenciales desde Azure Pipelines con tenantId=${tenantId}, clientId=${clientId}, svcConnId=${svcConnId} sysToken=${sysToken}`);
+        void Logs.agregarLineaAlLog(`[Azure] Obteniendo credenciales desde Azure Pipelines con tenantId=${tenantId}, clientId=${clientId}, svcConnId=${svcConnId} sysToken=${sysToken}`);
 
         _pipelines = new AzurePipelinesCredential(tenantId, clientId, svcConnId, sysToken);
       }
@@ -61,15 +61,15 @@ export const azureCredential: TokenCredential = {
       if (!_default) _default = new DefaultAzureCredential({ tenantId: getTenantId() });
       return await _default.getToken(scopes, options);
     } catch (defaultError) {
-      
+
       try {
         if (!_interactive) _interactive = new InteractiveBrowserCredential({ tenantId: getTenantId() });
-          void Logs.agregarLineaAlLog(`[Azure] Obteniendo credenciales desde el navegador.`);
+        void Logs.agregarLineaAlLog(`[Azure] Obteniendo credenciales desde el navegador.`);
         return await _interactive.getToken(scopes, options);
       } catch (interactiveError) {
-         throw new Error(`${Logs.FgRed}[Auth Local] Autenticación fallida. 'Default' e 'Interactive' fallaron. Detalle: ${(interactiveError as Error).message}${Logs.Reset}`);
+        throw new Error(`${Logs.FgRed}[Auth Local] Autenticación fallida. 'Default' e 'Interactive' fallaron. Detalle: ${(interactiveError as Error).message}${Logs.Reset}`);
       }
-      
+
     }
   },
 };
