@@ -7,15 +7,22 @@ dotenv.config({ path: `.env.${env}` });
 
 const testDir = './src/test/specs';
 
+function getWorkers(): number {
+  const defaultWorkers = process.env.CI ? 3 : 1;
+  const workers = Number(process.env.WORKERS);
+
+  return Number.isFinite(workers) && workers > 0
+    ? workers
+    : defaultWorkers;
+}
+
 export default defineConfig({
   testDir,
   timeout: 60 * 1000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 2,
-  workers: process.env.CI
-    ? 2
-    : parseInt(process.env.WORKERS || '1'),
+  workers: getWorkers(),
   reporter: [
     ['html', { outputFolder: `reports/playwright-report/${process.env.Report ?? 'latest'}`, open: 'never' }],
     ['junit',  { outputFile:   `reports/temp/xml/results.xml`  }],

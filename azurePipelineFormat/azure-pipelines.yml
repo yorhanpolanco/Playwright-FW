@@ -85,102 +85,123 @@ parameters:
 
 stages:
 - stage: test
+  displayName: 'Ejecutar pruebas automatizadas'
   jobs:
-  - job: test
+  - deployment: test
+    displayName: 'Ejecutar pruebas en Environment Desarrollo - sbs1srv335-PID-R'
     timeoutInMinutes: 60
 
-    strategy:
-      matrix:
-    #    macOs:
-    #      poolName: 'onpremise'
-    #      vmImage: 'macOs-latest'
-        windows:
-    #      poolName: 'onpremise'
-          vmImage: 'windows-latest'
-    #  maxParallel: 2  # Descomentar para agregar ejecucion en paralelo de multiples plataformas si existen varios agentes(hosted)
+    environment:
+      name: Desarrollo
+      resourceName: resourceName
+      resourceType: VirtualMachine
+      tags: tag
 
     variables:
     - ${{ if eq(parameters.env, ' ') }}:
       - group: vg_qa_automation_exce_dev
+
     - ${{ else }}:
       - group: ${{ format('vg_qa_automation_exce_{0}', parameters.env) }}
+
     - group: vg_qa_automation_framework_conf
+
     - ${{ if ne(parameters.browser, ' ') }}:
       - name: BROWSER
         value: ${{ parameters.browser }}
+
     - ${{ if ne(parameters.env, ' ') }}:
       - name: ENVIRONMENT
         value: ${{ parameters.env }}
+
     - ${{ if ne(parameters.tags, ' ') }}:
       - name: TAGS
         value: ${{ parameters.tags }}
+
     - ${{ if ne(parameters.folder, ' ') }}:
       - name: FOLDER
         value: ${{ parameters.folder }}
+
     - ${{ if ne(parameters.feature, ' ') }}:
       - name: FEATURE
         value: ${{ parameters.feature }}
+
     - ${{ if ne(parameters.data_file, ' ') }}:
       - name: DATA_FILE
         value: ${{ parameters.data_file }}
+
     - ${{ if ne(parameters.workers, ' ') }}:
       - name: WORKERS
         value: ${{ parameters.workers }}
+
     - ${{ if ne(parameters.scenario, ' ') }}:
       - name: SCENARIO
         value: ${{ parameters.scenario }}
+
     - name: HEADLESS
       value: true
 
-    pool:
-  #    name: $(poolName)
-      vmImage: $(vmImage)
+    - name: TARGET_RESOURCE
+      value: resourceName
 
-    steps:
-      - checkout: self
-        displayName: 'Clonar repositorio'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+            - checkout: self
+              displayName: 'Clonar repositorio'
 
-      - task: NodeTool@0
-        inputs:
-          versionSpec: '24.x'
-        displayName: 'Configurar Node.js'
+            - task: NodeTool@0
+              inputs:
+                versionSpec: '24.x'
+              displayName: 'Configurar Node.js'
 
-      - script: |
-          npm ci --ignore-scripts
-        displayName: 'Instalar dependencias de CI'
+            - script: |
+                npm ci --ignore-scripts
+              displayName: 'Instalar dependencias de CI'      
 
-      - script: |
-          npm run $(BROWSER) folder=$(FOLDER) data_file=$(DATA_FILE) feature=$(FEATURE) tags=$(TAGS) env=$(ENVIRONMENT) workers=$(WORKERS) scenario=$(SCENARIO)
-        displayName: 'Ejecutar escenarios de prueba'
-        env:
-          AZURE_DEVOPS_PAT: $(AZURE_DEVOPS_PAT)
+            - task: AzureCLI@2
+              displayName: 'Referenciar Service Connection'
+              inputs:
+                azureSubscription: 'AZ-Services-Connection-name'
+                scriptType: 'ps'
+                scriptLocation: 'inlineScript'
+                inlineScript: |
+                  Write-Host "Service connection referenciado"
 
-      - task: PublishPipelineArtifact@1
-        inputs:
-          targetPath: '$(Build.SourcesDirectory)/reports/playwright-report/'
-          artifactName: 'ReporteHTML-$(vmImage)'
-        condition: and(always(), ne(variables['BROWSER'], 'perf'))
-        displayName: 'Generar artefacto de Reporte HTML para $(vmImage)'
+            - script: |
+                npm run $(BROWSER) folder=$(FOLDER) data_file=$(DATA_FILE) feature=$(FEATURE) tags=$(TAGS) env=$(ENVIRONMENT) workers=$(WORKERS) scenario=$(SCENARIO)
+              displayName: 'Ejecutar escenarios de prueba'
+              env:
+                AZURE_SYSTEM_ACCESS_TOKEN: $(System.AccessToken)
+                CI: true
 
-      - task: PublishPipelineArtifact@1
-        inputs:
-          targetPath: '$(Build.SourcesDirectory)/reports/K6-report/'
-          artifactName: 'ReporteK6-$(vmImage)'
-        condition: and(always(), eq(variables['BROWSER'], 'perf'))
-        displayName: 'Generar artefacto de Reporte K6 para $(vmImage)'
+            - task: PublishPipelineArtifact@1
+              inputs:
+                targetPath: '$(Build.SourcesDirectory)/reports/playwright-report/'
+                artifactName: 'ReporteHTML-$(TARGET_RESOURCE)'
+              condition: and(always(), ne(variables['BROWSER'], 'perf'))
+              displayName: 'Generar artefacto de Reporte HTML para $(TARGET_RESOURCE)'
 
-      - task: PublishPipelineArtifact@1
-        inputs:
-          targetPath: '$(Build.SourcesDirectory)/logs/'
-          artifactName: 'Logs-$(vmImage)'
-        condition: always()
-        displayName: 'Generar artefacto de logs para $(vmImage)'
+            - task: PublishPipelineArtifact@1
+              inputs:
+                targetPath: '$(Build.SourcesDirectory)/reports/K6-report/'
+                artifactName: 'ReporteK6-$(TARGET_RESOURCE)'
+              condition: and(always(), eq(variables['BROWSER'], 'perf'))
+              displayName: 'Generar artefacto de Reporte K6 para $(TARGET_RESOURCE)'
 
-      - task: PublishTestResults@2
-        inputs:
-          testResultsFiles: '$(Build.SourcesDirectory)/reports/temp/xml/*.xml'
-          mergeTestResults: true
-          testRunTitle: 'Cucumber JUnit Results'
-          publishRunAttachments: true
-        condition: and(always(), ne(variables['BROWSER'], 'perf'))
-        displayName: 'Publicar Test Results'
+            - task: PublishPipelineArtifact@1
+              inputs:
+                targetPath: '$(Build.SourcesDirectory)/logs/'
+                artifactName: 'Logs-$(TARGET_RESOURCE)'
+              condition: always()
+              displayName: 'Generar artefacto de logs para $(TARGET_RESOURCE)'
+
+            - task: PublishTestResults@2
+              inputs:
+                testResultsFiles: '$(Build.SourcesDirectory)/reports/temp/xml/*.xml'
+                mergeTestResults: true
+                testRunTitle: 'Cucumber JUnit Results'
+                publishRunAttachments: true
+              condition: and(always(), ne(variables['BROWSER'], 'perf'))
+              displayName: 'Publicar Test Results'
