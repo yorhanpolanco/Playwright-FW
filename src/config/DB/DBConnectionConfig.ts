@@ -1,5 +1,8 @@
 import {ConnectionDetails} from '../DB/oracleConfig';
 
+const FgRed = '\x1b[31m';
+const Reset = '\x1b[0m';
+
 
   interface DBCredentials {
     [key: string]: {
@@ -43,7 +46,7 @@ import {ConnectionDetails} from '../DB/oracleConfig';
       return DBCredentials[BD][user];
     } else {
       const log=`Las credenciales BD=${BD} usuario=${user} no fueron encontradas en el archivo DBConnectionConfig`;
-      throw new Error(log);
+      throw new Error(`${FgRed}${log}${Reset}`);
     }
   }
   

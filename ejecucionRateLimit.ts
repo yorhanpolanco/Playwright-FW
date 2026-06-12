@@ -31,7 +31,7 @@ function extraerArgumentos(): Argumentos {
 
   const env = resultado.env ?? process.env.ENV;
   if (!env) {
-    throw new Error('Debes proveer el argumento env=<entorno>');
+    throw new Error(`${Logs.FgRed}Debes proveer el argumento env=<entorno>${Logs.Reset}`);
   }
 
   return { ...resultado, env };
@@ -75,7 +75,7 @@ async function ejecutar(): Promise<void> {
     try {
       parsed = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
     } catch {
-      throw new Error(`No se pudo leer o parsear el archivo de datos: ${dataPath}`);
+      throw new Error(`${Logs.FgRed}No se pudo leer o parsear el archivo de datos: ${dataPath}${Logs.Reset}`);
     }
 
     const scopeAuth = args.scenario
@@ -122,6 +122,6 @@ async function ejecutar(): Promise<void> {
 
 ejecutar().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
-  console.error(`Error fatal durante la ejecución: ${message}`);
+  console.error(`${Logs.FgRed}Error fatal durante la ejecución: ${message}${Logs.Reset}`);
   process.exit(1);
 });

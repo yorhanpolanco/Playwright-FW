@@ -7,7 +7,7 @@ import { replacePlaceholders } from '../../utilidades/playwright-utilidades';
 export function obtenerCasosDeData(jsonFile: string): string[] {
     const filePath = path.resolve(__dirname, '../../test/data/', `${jsonFile}.json`);
     if (!fs.existsSync(filePath)) {
-        throw new Error(`Archivo de data no encontrado: ${filePath}`);
+        throw new Error(`${Logs.FgRed}Archivo de data no encontrado: ${filePath}${Logs.Reset}`);
     }
     return Object.keys(
         JSON.parse(fs.readFileSync(filePath, 'utf-8'))
@@ -98,7 +98,7 @@ export const worldDataFixture = {
                         await Logs.agregarLineaAlLog(successLog, true);
                     } else {
                         const errorLog = Logs.formantCabecera(`${Logs.workerTag} No se cargó data del Json a pesar de que el archivo existe, verifique el segundo key en el feature y en su archivo de data.`);
-                        throw new Error(errorLog);
+                        throw new Error(`${Logs.FgRed}${errorLog}${Logs.Reset}`);
                     }
                 } else {
                     const warnLog = `==>No se encontró archivo Json con los datos para las pruebas<==`;

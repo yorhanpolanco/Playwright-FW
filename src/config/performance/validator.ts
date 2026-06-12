@@ -1,6 +1,9 @@
 import { check } from 'k6';
 import { Response } from 'k6/http';
 
+const FgRed = '\x1b[31m';
+const Reset = '\x1b[0m';
+
 type JsonSchemaType = string | string[];
 
 type JsonSchema = {
@@ -116,7 +119,7 @@ export function validarEstructura(res: Response, schema: JsonSchema): void {
   check(res, {
     'Validar estructura del response': () => {
       if (errores.length > 0) {
-        console.error(`Errores de validación de esquema:\n${errores.join('\n')}`);
+        console.error(`${FgRed}Errores de validación de esquema:\n${errores.join('\n')}${Reset}`);
         return false;
       }
       return true;

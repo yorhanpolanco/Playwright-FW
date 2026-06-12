@@ -39,7 +39,7 @@ export const azureCredential: TokenCredential = {
 
         // Validación real, sin "as string"
         if (!tenantId || !clientId || !svcConnId || !sysToken) {
-          throw new Error('[Auth CI] Faltan variables de entorno obligatorias para AzurePipelinesCredential.');
+          throw new Error(`${Logs.FgRed}[Auth CI] Faltan variables de entorno obligatorias para AzurePipelinesCredential.${Logs.Reset}`);
         }
 
           void Logs.agregarLineaAlLog(`[Azure] Obteniendo credenciales desde Azure Pipelines con tenantId=${tenantId}, clientId=${clientId}, svcConnId=${svcConnId} sysToken=${sysToken}`);
@@ -50,7 +50,7 @@ export const azureCredential: TokenCredential = {
       try {
         return await _pipelines.getToken(scopes, options);
       } catch (error) {
-        throw new Error(`[Auth CI] AzurePipelinesCredential falló. Verifica la conexión del servicio. Detalle: ${(error as Error).message}`);
+        throw new Error(`${Logs.FgRed}[Auth CI] AzurePipelinesCredential falló. Verifica la conexión del servicio. Detalle: ${(error as Error).message}${Logs.Reset}`);
       }
     }
 
@@ -67,7 +67,7 @@ export const azureCredential: TokenCredential = {
           void Logs.agregarLineaAlLog(`[Azure] Obteniendo credenciales desde el navegador.`);
         return await _interactive.getToken(scopes, options);
       } catch (interactiveError) {
-         throw new Error(`[Auth Local] Autenticación fallida. 'Default' e 'Interactive' fallaron. Detalle: ${(interactiveError as Error).message}`);
+         throw new Error(`${Logs.FgRed}[Auth Local] Autenticación fallida. 'Default' e 'Interactive' fallaron. Detalle: ${(interactiveError as Error).message}${Logs.Reset}`);
       }
       
     }

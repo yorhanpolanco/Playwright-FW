@@ -25,7 +25,7 @@ export default function getAuthDetails(auth: string) {
       Logs.agregarLineaAlLog(`Se utilizarán las credenciales de autorización para API=${auth}`);
         return ApiAuthDetails[auth];
     } else {
-        throw new Error(`${Logs.workerTag} Las credenciales de autorización para API=${auth} no fueron encontradas en el archivo ApiAuthConfig`);
+        throw new Error(`${Logs.FgRed}${Logs.workerTag} Las credenciales de autorización para API=${auth} no fueron encontradas en el archivo ApiAuthConfig${Logs.Reset}`);
     }
 }
 
@@ -34,16 +34,16 @@ export async function getAccessToken(scope: string): Promise<object> {
 
   try {
     const tokenResponse = await azureCredential.getToken(scope);
-    if (!tokenResponse) throw new Error(`${Logs.workerTag} La respuesta del token fue nula`);
+    if (!tokenResponse) throw new Error(`${Logs.FgRed}${Logs.workerTag} La respuesta del token fue nula${Logs.Reset}`);
     Logs.agregarLineaAlLog(`Token obtenido exitosamente para el scope "${scope}".`);
     return { Authorization: `Bearer ${tokenResponse.token}` };
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     throw new Error(
-      `${Logs.workerTag} No se pudo obtener el token de Azure para el scope "${scope}".\n` +
+      `${Logs.FgRed}${Logs.workerTag} No se pudo obtener el token de Azure para el scope "${scope}".\n` +
       `  Ejecución local : ejecute "az login" con la cuenta que tiene acceso al app registration.\n` +
       `  Pipeline        : verifique que el agente de Azure DevOps tiene la identidad administrada o la conexión de servicio configurada.\n` +
-      `  Detalle         : ${detail}`
+      `  Detalle         : ${detail}${Logs.Reset}`
     );
   }
 }

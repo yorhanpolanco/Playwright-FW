@@ -18,16 +18,18 @@ class Logs {
         }
     }
 
+    static readonly Reset = '\x1b[0m';
+    static readonly FgRed = '\x1b[31m';
+
     static async #escribirEnLog(linea: string, color?: boolean | string): Promise<void> {
-        const Reset   = '\x1b[0m';
+
         const FgGreen = '\x1b[32m';
-        const FgRed   = '\x1b[31m';
         const rutaLogs = process.env.RUTA_LOGS;
 
         if (color === true) {
-            console.log(`${FgGreen}${linea} ${Reset}`);
+            console.log(`${FgGreen}${linea} ${Logs.Reset}`);
         } else if (color === false) {
-            console.log(`${FgRed}${Logs.#obtenerFechaYHoraActual()} ${linea}${Reset}`);
+            console.log(`${Logs.FgRed}${Logs.#obtenerFechaYHoraActual()} ${linea}${Logs.Reset}`);
         } else {
             linea = `${Logs.#obtenerFechaYHoraActual()} ${linea}`;
             console.log(linea);
@@ -37,7 +39,7 @@ class Logs {
             try {
                 await fs.promises.appendFile(rutaLogs, linea + '\n', 'utf8');
             } catch (error) {
-                console.error('Error al escribir en el archivo:', error);
+                console.error(`${Logs.FgRed}Error al escribir en el archivo: ${error}${Logs.Reset}`);
             }
         }
     }
@@ -70,16 +72,16 @@ class Logs {
         const environment = process.env.ENV;
         const featureName = process.env.FEATURE;
         const browserName = process.env.BROWSER;
-        const folderName  = process.env.FOLDER;
-        const tags        = process.env.TAGS;
-        const paralelo    = process.env.PARALELO;
+        const folderName = process.env.FOLDER;
+        const tags = process.env.TAGS;
+        const paralelo = process.env.PARALELO;
 
-        if (browserName)  variables.push(`Browser => ${browserName}`);
-        if (environment)  variables.push(`Env => ${environment}`);
-        if (featureName)  variables.push(`Feature => ${featureName}`);
-        if (folderName)   variables.push(`Folder => ${folderName}`);
-        if (tags)         variables.push(`Tags => ${tags}`);
-        if (paralelo)     variables.push(`paralelo => ${paralelo}`);
+        if (browserName) variables.push(`Browser => ${browserName}`);
+        if (environment) variables.push(`Env => ${environment}`);
+        if (featureName) variables.push(`Feature => ${featureName}`);
+        if (folderName) variables.push(`Folder => ${folderName}`);
+        if (tags) variables.push(`Tags => ${tags}`);
+        if (paralelo) variables.push(`paralelo => ${paralelo}`);
 
         return variables;
     }

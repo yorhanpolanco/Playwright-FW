@@ -9,6 +9,9 @@ import { ejecutarFase } from '../../config/performance/rateLimitHandler.ts';
 const DATA_FILE    = __ENV.data_file;
 const SCENARIO_KEY = __ENV.scenario;
 
+const FgRed = '\x1b[31m';
+const Reset = '\x1b[0m';
+
 // --- Init context de k6: open() sólo puede llamarse aquí ---
 const singleScenario: RateLimitData | null = SCENARIO_KEY
   ? asRateLimitData(cargarEscenario(DATA_FILE, SCENARIO_KEY), SCENARIO_KEY)
@@ -46,7 +49,7 @@ export default function (): void {
     const key   = __ENV.CURRENT_SCENARIO;
     const found = allScenarios[key];
     if (!found) {
-      console.error(`❌ CURRENT_SCENARIO inválido o no definido: "${key}"`);
+      console.error(`${FgRed}❌ CURRENT_SCENARIO inválido o no definido: "${key}"${Reset}`);
       return;
     }
     ejecutarFase(found, __ITER);

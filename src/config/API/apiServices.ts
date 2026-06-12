@@ -13,7 +13,7 @@ class ApiService {
   async ejecutarRequest(metodo: string, url: string, endpoint: string, headers: string | Header, auth?: string, payload?: unknown): Promise<Record<string, any>> {
     if (!metodo || !url || !endpoint) {
       const campos = await obtenerVariablesVacias({ metodo, url, endpoint });
-      throw new Error(`${Logs.workerTag} No se puede realizar el request porque no fue agregado el valor de ${campos.join(',')}`);
+      throw new Error(`${Logs.FgRed}${Logs.workerTag} No se puede realizar el request porque no fue agregado el valor de ${campos.join(',')}${Logs.Reset}`);
     }
 
     const parsedHeaders: Header = typeof headers === 'string'

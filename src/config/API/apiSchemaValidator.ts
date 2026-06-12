@@ -3,6 +3,9 @@ import addFormats from 'ajv-formats';
 import fs from 'node:fs';
 import path from 'path';
 
+const FgRed = '\x1b[31m';
+const Reset = '\x1b[0m';
+
 const ajv = new Ajv({
     allErrors: true,
     strict: false
@@ -28,11 +31,11 @@ export class SchemaValidator {
 
             if (!valid) {
                 throw new Error(
-                    `Validacion del esquema fallo:\n ${JSON.stringify(validate.errors, null, 2)}`
+                    `${FgRed}Validacion del esquema fallo:\n ${JSON.stringify(validate.errors, null, 2)}${Reset}`
                 );
             }
         } else {
-            throw new Error(`Esquema no fue encontrado en la ruta: ${filePath}`);
+            throw new Error(`${FgRed}Esquema no fue encontrado en la ruta: ${filePath}${Reset}`);
         }
     }
 }

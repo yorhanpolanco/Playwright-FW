@@ -7,6 +7,9 @@ import { crearOpciones, crearOpcionesMultiples } from '../../config/performance/
 const DATA_FILE    = __ENV.data_file;
 const SCENARIO_KEY = __ENV.scenario;
 
+const FgRed = '\x1b[31m';
+const Reset = '\x1b[0m';
+
 // --- Init context de k6: open() sólo puede llamarse aquí ---
 const singleScenario: ScenarioData | null = SCENARIO_KEY
   ? cargarEscenario(DATA_FILE, SCENARIO_KEY)
@@ -27,7 +30,7 @@ export default function () {
     const key = __ENV.CURRENT_SCENARIO;
     const found = allScenarios[key];
     if (!found) {
-      console.error(`❌ CURRENT_SCENARIO inválido o no definido: "${key}"`);
+      console.error(`${FgRed}❌ CURRENT_SCENARIO inválido o no definido: "${key}"${Reset}`);
       return;
     }
     data = found;

@@ -1,5 +1,8 @@
 import { Locator, Page, FrameLocator } from '@playwright/test';
 
+const FgRed = '\x1b[31m';
+const Reset = '\x1b[0m';
+
 export class consultaRNCPOM {
     readonly page: Page;
     readonly herramientas: Locator;
@@ -45,7 +48,7 @@ export class consultaRNCPOM {
 
     async moverMouseAElemento(elemento: Locator) {
         let coordenadas = await elemento.boundingBox({ timeout: 5000 });
-        if (!coordenadas) throw new Error("No se pudo obtener el bounding box del elemento");
+        if (!coordenadas) throw new Error(`${FgRed}No se pudo obtener el bounding box del elemento${Reset}`);
 
         await this.page.mouse.move(coordenadas.x, coordenadas.y, { steps: 50 });
         return coordenadas;

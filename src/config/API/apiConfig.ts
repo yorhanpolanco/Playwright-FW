@@ -1,4 +1,5 @@
 import { APIRequestContext, APIResponse, request } from '@playwright/test';
+import Logs from '../logConfig';
 
 export interface Header {
     [key: string]: string
@@ -69,7 +70,7 @@ class ApiSetting {
         };
 
         if (!metodoMap.hasOwnProperty(metodo)) {
-            throw new Error(`Metodo HTTP: '${metodo}' no soportado. Los métodos válidos son: ${Object.keys(metodoMap).join(', ')}.`);
+            throw new Error(Logs.FgRed+ `Metodo HTTP: '${metodo}' no soportado. Los métodos válidos son: ${Object.keys(metodoMap).join(', ')}.` + Logs.Reset);
         }
 
         await this.init(url);

@@ -1,6 +1,9 @@
 import { execSync } from 'node:child_process';
 import os from 'node:os';
 
+const FgRed = '\x1b[31m';
+const Reset = '\x1b[0m';
+
 let k6Instalado = false;
 
 try {
@@ -31,11 +34,11 @@ if (!k6Instalado) {
                 execSync('sudo apt-get install k6', { stdio: 'inherit' });
                 break;
             default:
-                console.error('Sistema operativo no compatible para la instalación de k6.');
+                console.error(`${FgRed}Sistema operativo no compatible para la instalación de k6.${Reset}`);
                 process.exit(1);
         }
     } catch (error) {
-        console.error('Error durante la instalación de k6:', error);
+        console.error(`${FgRed}Error durante la instalación de k6: ${error}${Reset}`);
         process.exit(1);
     }
 }

@@ -16,7 +16,7 @@ class DatabaseService {
 
     if (!nombreBD || !usuario || !consulta) {
       const campos = await obtenerVariablesVacias({ nombreBD, usuario, consulta });
-      throw new Error(`${Logs.workerTag} No se pudo ejecutar el query porque no fue agregado el valor de ${campos.join(',')}`);
+      throw new Error(`${Logs.FgRed}${Logs.workerTag} No se pudo ejecutar el query porque no fue agregado el valor de ${campos.join(',')}${Logs.Reset}`);
     }
 
     if (dataJson && Object.keys(dataJson).length > 0) {

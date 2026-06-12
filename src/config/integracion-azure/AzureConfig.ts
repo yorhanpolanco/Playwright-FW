@@ -20,8 +20,8 @@ export function loadAzureConfig(): AzureConfiguration {
   const missing = REQUIRED_VARS.filter((v) => !process.env[v]);
   if (missing.length > 0) {
     throw new Error(
-      `[Azure] Faltan variables de entorno obligatorias: ${missing.join(', ')}\n` +
-      `  Configure estas variables en su archivo .env o en las variables del pipeline.`,
+      Logs.FgRed + `[Azure] Faltan variables de entorno obligatorias: ${missing.join(', ')}\n` +
+      `  Configure estas variables en su archivo .env o en las variables del pipeline.` + Logs.Reset,
     );
   }
 
@@ -33,7 +33,7 @@ export function loadAzureConfig(): AzureConfiguration {
     getToken: async () => {
       try {
         const response = await azureCredential.getToken(scope);
-        if (!response) throw new Error('La respuesta del token fue nula');
+        if (!response) throw new Error(`${Logs.FgRed}La respuesta del token fue nula${Logs.Reset}`);
         if (response.expiresOnTimestamp !== _lastTokenExpiry) {
           _lastTokenExpiry = response.expiresOnTimestamp;
           void Logs.agregarLineaAlLog(`[Azure] Nuevo token de Entra ID obtenido para Azure DevOps (scope: ${scope}, expira: ${new Date(response.expiresOnTimestamp).toISOString()}).`);
@@ -42,10 +42,10 @@ export function loadAzureConfig(): AzureConfiguration {
       } catch (error) {
         const detail = error instanceof Error ? error.message : String(error);
         throw new Error(
-          `[Azure] No se pudo obtener token de Entra ID para Azure DevOps (scope: ${scope}).\n` +
+          Logs.FgRed + `[Azure] No se pudo obtener token de Entra ID para Azure DevOps (scope: ${scope}).\n` +
           `  Ejecución local    : ejecute "az login" con la cuenta que tiene acceso al proyecto.\n` +
           `  Pipeline           : verifique que el agente tiene la Managed Identity o las variables AZURE_CLIENT_ID / AZURE_TENANT_ID / AZURE_CLIENT_SECRET configuradas.\n` +
-          `  Detalle            : ${detail}`,
+          `  Detalle            : ${detail}` + Logs.Reset,
         );
       }
     },

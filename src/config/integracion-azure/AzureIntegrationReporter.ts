@@ -82,7 +82,7 @@ export default class AzureIntegrationReporter implements Reporter {
 
     if (!isAzureConfigured()) {
       void Logs.agregarLineaAlLog(
-        '[Azure] Variables de entorno no configuradas — integración deshabilitada',
+        '[Azure] Variables de entorno no configuradas — integración deshabilitada',false
       );
       return;
     }

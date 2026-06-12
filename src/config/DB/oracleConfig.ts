@@ -22,9 +22,9 @@ class OracleDB {
       await Logs.agregarLineaAlLog(`Conexion a BD con usuario: ${connectionDetails.user} exitosa!`);
     } catch (err) {
       if (err instanceof Error) {
-        throw new Error(`${Logs.workerTag} Error conentandose a la BD con usuario: ${connectionDetails.user} ${err.message}`);
+        throw new Error(`${Logs.FgRed}${Logs.workerTag} Error conentandose a la BD con usuario: ${connectionDetails.user} ${err.message}${Logs.Reset}`);
       } else {
-        throw new Error(`${Logs.workerTag} Error conentandose a laBD con usuario: ${connectionDetails.user}`);
+        throw new Error(`${Logs.FgRed}${Logs.workerTag} Error conentandose a laBD con usuario: ${connectionDetails.user}${Logs.Reset}`);
       }
     }
   }
@@ -52,13 +52,13 @@ class OracleDB {
         return result.rows;
       } catch (err) {
         if (err instanceof Error) {
-          throw new Error(`${Logs.workerTag} Error ejecutando query: ${err.message}`);
+          throw new Error(`${Logs.FgRed}${Logs.workerTag} Error ejecutando query: ${err.message}${Logs.Reset}`);
         } else {
-          throw new Error(`${Logs.workerTag} Error desconocido ejecutando query`);
+          throw new Error(`${Logs.FgRed}${Logs.workerTag} Error desconocido ejecutando query${Logs.Reset}`);
         }
       }
     } else {
-      throw new Error(`${Logs.workerTag} No hay una conexion a BD activa!`);
+      throw new Error(`${Logs.FgRed}${Logs.workerTag} No hay una conexion a BD activa!${Logs.Reset}`);
     }
   }
 
@@ -69,10 +69,10 @@ class OracleDB {
         this.connection = undefined;
         await Logs.agregarLineaAlLog(`Conexion a BD cerrada exitosamente!`);
       } catch (err) {
-        throw new Error(`${Logs.workerTag} Error cerrando conexion a BD : ${err} `);
+        throw new Error(`${Logs.FgRed}${Logs.workerTag} Error cerrando conexion a BD : ${err} ${Logs.Reset}`);
       }
     } else {
-      throw new Error(`${Logs.workerTag} No hay conexion de BD abierta que cerrar.`);
+      throw new Error(`${Logs.FgRed}${Logs.workerTag} No hay conexion de BD abierta que cerrar.${Logs.Reset}`);
     }
   }
 }
