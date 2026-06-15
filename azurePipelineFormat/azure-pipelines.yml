@@ -201,7 +201,7 @@ stages:
               inputs:
                 testResultsFiles: '$(Build.SourcesDirectory)/reports/temp/xml/*.xml'
                 mergeTestResults: true
-                testRunTitle: 'Cucumber JUnit Results'
+                testRunTitle: 'Playwright JUnit Results'
                 publishRunAttachments: true
               condition: and(always(), ne(variables['BROWSER'], 'perf'))
               displayName: 'Publicar Test Results'
