@@ -433,7 +433,10 @@ AZURE_TESTSUITE_ID=456
 ENABLE_BUG_CREATION=true
 ```
 
-La autenticación usa **Microsoft Entra ID** via `DefaultAzureCredential` (`@azure/identity`). No se requiere un PAT. En local, autenticarse previamente con `az login --tenant <tenant-id>`; en pipelines, configurar la Managed Identity del agente o las variables `AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_CLIENT_SECRET`.
+La autenticación implementa un modelo **Zero-Trust (sin secretos estáticos)** basado en **Microsoft Entra ID** (`@azure/identity`), descartando el uso de Personal Access Tokens (PATs) o Client Secrets:
+
+- **En Pipelines (CI)**: Se utiliza `AzurePipelinesCredential` soportando **Workload Identity Federation**. Se requiere proveer `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SERVICE_CONNECTION_ID` y mapear el token efímero `$(System.AccessToken)`.
+- **En Entornos Locales**: Usa `DefaultAzureCredential` (requiere `az login --tenant <tenant-id>`). Opcionalmente, al activar `AZURE_RESOURCE_AUTENTICATION=true` en el `.env`, el framework obtiene automáticamente las credenciales de sesión activa desde la extensión de Azure en Visual Studio Code.
 
 El scope por defecto es `https://app.vssps.visualstudio.com/.default`. Si la organización requiere uno distinto, sobreescribirlo con `AZURE_DEVOPS_SCOPE`.
 
@@ -601,9 +604,15 @@ Cada archivo `.env.<ambiente>` debe contener las siguientes variables. Las marca
 | `ENABLE_BUG_CREATION` | Crea bugs automáticamente por fallos | `false` |
 | `ENABLE_TRACE_ATTACHMENTS` | Adjunta trazas de Playwright a Azure DevOps | `true` |
 | `AZURE_TLS_REJECT_UNAUTHORIZED` | Validación TLS en peticiones a Azure DevOps | `true` |
-| `AZURE_TENANT_ID` | Tenant ID de Microsoft Entra ID para la integración con Azure DevOps | — |
+| `AZURE_TENANT_ID` | Tenant ID de Microsoft Entra ID | Sí (en CI) |
+| `AZURE_CLIENT_ID` | Client ID de la App Registration / Service Principal | Sí (en CI) |
+| `AZURE_SERVICE_CONNECTION_ID` | ID (Object ID) del Service Connection en Azure DevOps | Sí (en CI) |
+| `AZURE_SYSTEM_ACCESS_TOKEN` | Token de acceso del sistema en el pipeline (`$(System.AccessToken)`) | Sí (en CI) |
+| `AZURE_RESOURCE_AUTENTICATION` | Habilita autenticación local usando el plugin de VS Code | `false` |
 
-> **Autenticación**: la integración usa **Microsoft Entra ID** (`DefaultAzureCredential`), no PAT. En local ejecutar `az login --tenant <tenant-id>` antes de las pruebas. En pipelines, asignar la Managed Identity o configurar `AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_CLIENT_SECRET` como variables del agente.
+> **Autenticación Zero-Trust (Sin Secretos Estáticos)**: 
+> - **CI (Pipelines)**: Usa `AzurePipelinesCredential` (Workload Identity Federation). Requiere configurar `AZURE_TENANT_ID`, `AZURE_CLIENT_ID`, `AZURE_SERVICE_CONNECTION_ID` y mapear el token del sistema (`AZURE_SYSTEM_ACCESS_TOKEN: $(System.AccessToken)`). **No utiliza secretos estáticos ni PATs**.
+> - **Local**: Usa una cadena de credenciales robusta. Por defecto usa `DefaultAzureCredential` (requiere `az login`). Si `AZURE_RESOURCE_AUTENTICATION=true`, integra el plugin de Visual Studio Code para autenticarse usando la identidad activa del IDE. Como mecanismo de respaldo, emplea `InteractiveBrowserCredential` vía navegador.
 
 ---
 
@@ -685,14 +694,16 @@ k6 version
 3. Verificar que los tests tengan el tag `@TC###` con IDs válidos.
 4. Revisar los logs de ejecución en `logs/` para mensajes `[Azure]` — indican el estado de cada operación.
 
-#### La autenticación Entra ID falla en local
+#### La autenticación Entra ID falla en local o en CI
 
-El framework aplica la siguiente cadena de autenticación en entornos locales (non-CI):
+El framework implementa una cadena de autenticación robusta y diferenciada según el entorno de ejecución:
 
-1. **`DefaultAzureCredential`** — intenta en orden: variables de entorno, sesión de VS Code (via plugin), Azure CLI, Azure PowerShell.
-2. **`InteractiveBrowserCredential`** — si todo lo anterior falla, abre el navegador para autenticación interactiva.
+**En entornos locales (Non-CI):**
+1. **VS Code Plugin (Opcional)**: Si `AZURE_RESOURCE_AUTENTICATION=true`, integra la extensión de Azure de VS Code.
+2. **`DefaultAzureCredential`**: Intenta obtener credenciales desde Azure CLI (`az login`).
+3. **`InteractiveBrowserCredential`**: Si lo anterior falla, abre el navegador para un login interactivo.
 
-La forma más estable para entornos locales sin browser es autenticarse con Azure CLI una sola vez:
+La forma más estable y recomendada para entornos locales es usar Azure CLI:
 
 ```bash
 # Autenticarse con el tenant corporativo
@@ -702,15 +713,20 @@ az login --tenant <tenant-id>
 az account show
 ```
 
-Si `AZURE_TENANT_ID` está vacío en el `.env`, el browser abre al endpoint `common` de Microsoft (el usuario elige la cuenta). Para evitar esto, configurar el tenant explícitamente:
+*(Si `AZURE_TENANT_ID` está vacío en tu `.env`, el browser abrirá el endpoint `common` de Microsoft. Para evitar flujos multi-tenant no deseados, configura explícitamente el `AZURE_TENANT_ID`).*
 
-```env
-AZURE_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+**En Azure Pipelines (CI):**
+El framework detecta automáticamente el entorno CI y delega la autenticación a `AzurePipelinesCredential`. Si la autenticación falla en CI, verifica que:
+1. El **Service Connection** (indicado en `AZURE_SERVICE_CONNECTION_ID`) tenga habilitado el Workload Identity Federation y esté autorizado en el pipeline.
+2. El **Service Principal** (indicado en `AZURE_CLIENT_ID` y `AZURE_TENANT_ID`) tenga permisos correctos en Entra ID y accesos al proyecto en Azure DevOps.
+3. El pipeline esté mapeando correctamente la variable del sistema:
+```yaml
+env:
+  AZURE_SYSTEM_ACCESS_TOKEN: $(System.AccessToken)
 ```
+*(Nota: El framework ya no utiliza ni requiere `AZURE_CLIENT_SECRET`).*
 
-> **Nota sobre cache de tokens:** el SDK reutiliza el token en memoria durante toda la ejecución y lo renueva automáticamente 5 minutos antes de que expire. No se generan requests adicionales a Azure AD mientras el token sea válido.
-
-En pipelines, verificar que la Managed Identity del agente tenga acceso al proyecto de Azure DevOps, o que las variables `AZURE_CLIENT_ID`, `AZURE_TENANT_ID` y `AZURE_CLIENT_SECRET` estén configuradas en el grupo de variables del pipeline.
+> **Nota sobre caché de tokens:** El SDK (`@azure/identity`) administra eficientemente el ciclo de vida del token. Este se mantiene en memoria y se renueva automáticamente 5 minutos antes de su expiración, optimizando el rendimiento y evitando requests redundantes a Azure AD.
 
 #### Los placeholders `%VARIABLE%` no se resuelven
 
